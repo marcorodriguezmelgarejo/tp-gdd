@@ -37,9 +37,12 @@ as
     select VENTA_MEDIO_PAGO, VENTA_MEDIO_PAGO_COSTO from gd_esquema.Maestra
     where VENTA_MEDIO_PAGO is not null
     
-    select VENTA_MEDIO_PAGO, VENTA_MEDIO_PAGO_COSTO, VENTA_DESCUENTO_CONCEPTO, VENTA_DESCUENTO_IMPORTE
+    select VENTA_MEDIO_PAGO, VENTA_MEDIO_PAGO_COSTO, VENTA_DESCUENTO_CONCEPTO, VENTA_DESCUENTO_IMPORTE,
+            (select * from gd_esquema.Maestra venta where venta.VENTA_MEDIO_PAGO ) as total_antes_del_descuento,
+            (select * from gd_esquema.Maestra venta where venta.VENTA_MEDIO_PAGO )
      from gd_esquema.Maestra
     where VENTA_MEDIO_PAGO is not null
+    order by VENTA_DESCUENTO_CONCEPTO desc
 
 
 go
@@ -64,7 +67,16 @@ AS
     insert into Canal(nombre, costo)
     select distinct VENTA_CANAL, VENTA_CANAL_COSTO from gd_esquema.Maestra
     where VENTA_CANAL is not null
-    
+GO
+
+CREATE PROC migracion_envio_X_codigo_postal
+AS
+    insert into Envio_X_codigo_postal (id_medio, codigo_postal, costo_envio)
+    select distinct (select id_medio from Medio_envio where Medio_envio.nombre = VENTA_MEDIO_ENVIO) as id_medio,
+     CLIENTE_CODIGO_POSTAL,
+     VENTA_COSTO_ENVIO from gd_esquema.Maestra
+    where VENTA_MEDIO_ENVIO is not null
+
 
 
 
