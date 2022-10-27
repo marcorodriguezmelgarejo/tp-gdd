@@ -1,7 +1,7 @@
 use GD2C2022
 
 create table Provincia (
-    id_provincia decimal(3) PRIMARY KEY,
+    id_provincia decimal(3) IDENTITY(1,1) PRIMARY KEY,
     nombre nvarchar(255) not null,
     );
 
@@ -56,7 +56,7 @@ create table Medio_de_pago(
 /* VENTA */
 
 create table Venta (
-    codigo_venta decimal(19,0) IDENTITY(1,1) PRIMARY KEY,
+    codigo_venta decimal(19,0) PRIMARY KEY,
     fecha date,
     id_cliente decimal(18,0),
     canal_de_venta decimal(18,0),
