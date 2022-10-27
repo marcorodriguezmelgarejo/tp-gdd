@@ -186,7 +186,7 @@ create table Compra_X_Producto(
 );
 
 
-
+-- pruebo commit
 
 
 
