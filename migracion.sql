@@ -6,4 +6,5 @@ as
     exec migracion_medio_envio
     exec migracion_cliente
     exec migracion_canal
+    exec migracion_medio_de_pago
 go

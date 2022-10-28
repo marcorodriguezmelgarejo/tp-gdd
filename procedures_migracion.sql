@@ -34,25 +34,25 @@ go
 CREATE PROC migracion_medio_de_pago
 as
     
-    -- Costo del medio de pago: (LISTO)
-    select VENTA_MEDIO_PAGO, VENTA_MEDIO_PAGO_COSTO from gd_esquema.Maestra
-    -- where VENTA_MEDIO_PAGO is not null
-    -- GROUP by venta_medio_pago, venta_medio_pago_costo
-    
-    -- Descuento del medio de pago: (LISTO)
+    insert into Medio_de_pago (nombre, descuento, costo)
     select VENTA_MEDIO_PAGO,
         (select top 1-- De la ultima venta con ese medio de pago...
-            (select sum(VENTA_DESCUENTO_IMPORTE) from gd_esquema.Maestra where VENTA_CODIGO = m1.VENTA_CODIGO and VENTA_DESCUENTO_CONCEPTO = VENTA_MEDIO_PAGO) /
-        sum(isnull(VENTA_PRODUCTO_CANTIDAD,0) * isnull(VENTA_PRODUCTO_PRECIO,0))
+        isnull((select sum(VENTA_DESCUENTO_IMPORTE) from gd_esquema.Maestra where VENTA_CODIGO = m1.VENTA_CODIGO and VENTA_DESCUENTO_CONCEPTO = VENTA_MEDIO_PAGO),0) /
+        sum(isnull(VENTA_PRODUCTO_CANTIDAD,0) * isnull(VENTA_PRODUCTO_PRECIO,0)) as descuento
+        -- El descuento dividido el total de los productos
         from gd_esquema.Maestra m1
         where m.VENTA_MEDIO_PAGO = VENTA_MEDIO_PAGO 
         group by VENTA_CODIGO, VENTA_FECHA
-        order by VENTA_FECHA desc)
-    as descuento_porcentual_por_medio_de_pago
+        order by VENTA_FECHA desc) as descuento,
+        (select top 1-- De la ultima venta con ese medio de pago...
+        min(VENTA_MEDIO_PAGO_COSTO) -- no importa que funcion de agrupacion use porque son todos el mismo valor
+        from gd_esquema.Maestra m1
+        where m.VENTA_MEDIO_PAGO = VENTA_MEDIO_PAGO 
+        group by VENTA_CODIGO, VENTA_FECHA
+        order by VENTA_FECHA desc) as costo
     from gd_esquema.Maestra m
     where VENTA_MEDIO_PAGO is not null
     group by VENTA_MEDIO_PAGO
-
 
 go
 
