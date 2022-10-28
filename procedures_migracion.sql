@@ -34,15 +34,24 @@ go
 CREATE PROC migracion_medio_de_pago
 as
     
+    -- Costo del medio de pago: (LISTO)
     select VENTA_MEDIO_PAGO, VENTA_MEDIO_PAGO_COSTO from gd_esquema.Maestra
-    where VENTA_MEDIO_PAGO is not null
+    -- where VENTA_MEDIO_PAGO is not null
+    -- GROUP by venta_medio_pago, venta_medio_pago_costo
     
-    select VENTA_MEDIO_PAGO, VENTA_MEDIO_PAGO_COSTO, VENTA_DESCUENTO_CONCEPTO, VENTA_DESCUENTO_IMPORTE,
-            (select * from gd_esquema.Maestra venta where venta.VENTA_MEDIO_PAGO ) as total_antes_del_descuento,
-            (select * from gd_esquema.Maestra venta where venta.VENTA_MEDIO_PAGO )
-     from gd_esquema.Maestra
+    -- Descuento del medio de pago: (LISTO)
+    select VENTA_MEDIO_PAGO,
+        (select top 1-- De la ultima venta con ese medio de pago...
+            (select sum(VENTA_DESCUENTO_IMPORTE) from gd_esquema.Maestra where VENTA_CODIGO = m1.VENTA_CODIGO and VENTA_DESCUENTO_CONCEPTO = VENTA_MEDIO_PAGO) /
+        sum(isnull(VENTA_PRODUCTO_CANTIDAD,0) * isnull(VENTA_PRODUCTO_PRECIO,0))
+        from gd_esquema.Maestra m1
+        where m.VENTA_MEDIO_PAGO = VENTA_MEDIO_PAGO 
+        group by VENTA_CODIGO, VENTA_FECHA
+        order by VENTA_FECHA desc)
+    as descuento_porcentual_por_medio_de_pago
+    from gd_esquema.Maestra m
     where VENTA_MEDIO_PAGO is not null
-    order by VENTA_DESCUENTO_CONCEPTO desc
+    group by VENTA_MEDIO_PAGO
 
 
 go
