@@ -7,4 +7,7 @@ as
     exec migracion_cliente
     exec migracion_canal
     exec migracion_medio_de_pago
+    exec migracion_producto
+    exec migracion_proveedor
+    exec migracion_cupon_descuento
 go

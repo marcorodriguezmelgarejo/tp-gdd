@@ -33,7 +33,6 @@ go
 
 CREATE PROC migracion_medio_de_pago
 as
-    
     insert into Medio_de_pago (nombre, descuento, costo)
     select VENTA_MEDIO_PAGO,
         (select top 1-- De la ultima venta con ese medio de pago...
@@ -53,7 +52,6 @@ as
     from gd_esquema.Maestra m
     where VENTA_MEDIO_PAGO is not null
     group by VENTA_MEDIO_PAGO
-
 go
 
 CREATE PROC migracion_cliente
@@ -77,6 +75,38 @@ AS
     select distinct VENTA_CANAL, VENTA_CANAL_COSTO from gd_esquema.Maestra
     where VENTA_CANAL is not null
 GO
+
+CREATE PROC migracion_producto
+AS
+
+    insert into dbo.Producto(cod_producto, nombre, descripcion, material, marca, categoria)
+    select distinct PRODUCTO_CODIGO, PRODUCTO_NOMBRE, PRODUCTO_DESCRIPCION, PRODUCTO_MATERIAL, PRODUCTO_MARCA, PRODUCTO_CATEGORIA
+    from gd_esquema.Maestra
+    where PRODUCTO_CODIGO is not null
+
+GO
+
+create proc migracion_proveedor
+AS
+    
+    insert into dbo.Proveedor(cuit, razon_social, domicilio, mail, localidad, codigo_postal)
+    select distinct PROVEEDOR_CUIT, PROVEEDOR_RAZON_SOCIAL, PROVEEDOR_DOMICILIO, PROVEEDOR_MAIL, PROVEEDOR_LOCALIDAD, PROVEEDOR_CODIGO_POSTAL
+    from gd_esquema.Maestra
+    where PROVEEDOR_CUIT is not null
+
+go
+
+create proc migracion_cupon_descuento
+AS
+
+    insert into dbo.Cupon_descuento(codigo, fecha_desde, fecha_hasta, valor, tipo)
+    select distinct VENTA_CUPON_CODIGO, VENTA_CUPON_FECHA_DESDE, VENTA_CUPON_FECHA_HASTA, VENTA_CUPON_VALOR, VENTA_CUPON_TIPO
+    from gd_esquema.Maestra
+    where VENTA_CUPON_CODIGO is not null
+    order by VENTA_CUPON_CODIGO
+
+Go
+
 
 CREATE PROC migracion_envio_X_codigo_postal
 AS
