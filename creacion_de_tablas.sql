@@ -166,7 +166,7 @@ create table Compra(
     total decimal(18,2),
     medio_de_pago decimal(18,0)
     foreign key(proveedor) references proveedor(cuit),
-    foreign key(medio_de_pago) references Medio_de_pago_compra(id_medio_pago)
+    foreign key(medio_de_pago) references Medio_de_pago_compra(id_medio_pago_compra)
 )
 
 create table Descuento_compra(
@@ -186,16 +186,3 @@ create table Compra_X_Producto(
     foreign key(producto) references Producto_X_Variante(cod_producto_X_variante),
     CONSTRAINT PK_Compra_X_Producto PRIMARY KEY (compra, producto),
 );
-
-
--- pruebo commit
-
-
-
-
-
-
-
-
-
-

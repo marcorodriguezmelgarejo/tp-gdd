@@ -31,9 +31,9 @@ as
     where VENTA_MEDIO_ENVIO is not null
 go
 
-CREATE PROC migracion_medio_de_pago
+CREATE PROC migracion_medio_de_pago_venta
 as
-    insert into Medio_de_pago (nombre, descuento, costo)
+    insert into Medio_de_pago_venta (nombre, descuento, costo)
     select VENTA_MEDIO_PAGO,
         (select top 1-- De la ultima venta con ese medio de pago...
         isnull((select sum(VENTA_DESCUENTO_IMPORTE) from gd_esquema.Maestra where VENTA_CODIGO = m1.VENTA_CODIGO and VENTA_DESCUENTO_CONCEPTO = VENTA_MEDIO_PAGO),0) /
@@ -107,14 +107,71 @@ AS
 
 Go
 
-
 CREATE PROC migracion_envio_X_codigo_postal
 AS
     insert into Envio_X_codigo_postal (id_medio, codigo_postal, costo_envio)
     select distinct (select id_medio from Medio_envio where Medio_envio.nombre = VENTA_MEDIO_ENVIO) as id_medio,
      CLIENTE_CODIGO_POSTAL,
-     VENTA_COSTO_ENVIO from gd_esquema.Maestra
+     (select top 1 VENTA_ENVIO_PRECIO 
+     from gd_esquema.Maestra 
+     where CLIENTE_CODIGO_POSTAL = m.CLIENTE_CODIGO_POSTAL and VENTA_MEDIO_ENVIO = m.VENTA_MEDIO_ENVIO
+     order by VENTA_FECHA desc) 
+    from gd_esquema.Maestra m
     where VENTA_MEDIO_ENVIO is not null
+GO
+
+CREATE PROC migracion_producto_X_variante
+AS
+    -- BIEN    
+    select PRODUCTO_VARIANTE_CODIGO, PRODUCTO_CODIGO, PRODUCTO_VARIANTE, PRODUCTO_TIPO_VARIANTE,
+    -- STOCK
+        (select sum(COMPRA_PRODUCTO_CANTIDAD) as stock 
+        from gd_esquema.Maestra
+        where PRODUCTO_VARIANTE_CODIGO = m.PRODUCTO_VARIANTE_CODIGO)
+        -
+        (select sum(VENTA_PRODUCTO_CANTIDAD) as stock 
+        from gd_esquema.Maestra
+        where PRODUCTO_VARIANTE_CODIGO = m.PRODUCTO_VARIANTE_CODIGO) as stock
+    from gd_esquema.Maestra m
+    where PRODUCTO_VARIANTE_CODIGO is not null
+
+
+    
+    --precio de la ultima venta que se hizo de una variante
+    select PRODUCTO_VARIANTE_CODIGO, VENTA_PRODUCTO_PRECIO
+    from gd_esquema.Maestra
+    where PRODUCTO_VARIANTE_CODIGO is not null and VENTA_PRODUCTO_PRECIO is not null
+    order by VENTA_FECHA DESC
+    
+GO
+
+
+
+
+
+CREATE PROC migracion_medio_de_pago_compra
+as
+    insert into Medio_de_pago_compra(nombre)
+    select distinct COMPRA_MEDIO_PAGO from gd_esquema.Maestra
+    where COMPRA_MEDIO_PAGO is not null
+GO
+
+CREATE PROC migracion_compra
+AS
+    insert into Compra (numero_compra, fecha, proveedor, total, medio_de_pago)
+    select distinct COMPRA_NUMERO,
+    COMPRA_FECHA,
+    PROVEEDOR_CUIT,
+    COMPRA_TOTAL,
+    (select id_medio_pago_compra from medio_de_pago_compra where nombre = COMPRA_MEDIO_PAGO)
+    from gd_esquema.Maestra
+    where COMPRA_NUMERO is not null 
+GO
+
+
+
+
+
 
 
 
