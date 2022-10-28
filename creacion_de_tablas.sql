@@ -46,11 +46,16 @@ create table Cliente (
     FOREIGN KEY (codigo_postal) REFERENCES Codigo_postal(codigo_postal)
 );
 
-create table Medio_de_pago(
+create table Medio_de_pago_venta(
     id_medio_pago decimal(18,0) IDENTITY(1,1) PRIMARY KEY,
     nombre nvarchar(255),
     descuento decimal(18,2),
     costo decimal(18,2)
+);
+
+create table Medio_de_pago_compra(
+    id_medio_pago_compra decimal(18,0) IDENTITY(1,1) PRIMARY KEY,
+    nombre nvarchar(255),
 );
 
 /* VENTA */
@@ -79,7 +84,6 @@ create table Cupon_descuento (
     codigo nvarchar(255) PRIMARY KEY,
     fecha_desde date,
     fecha_hasta date,
-    importe decimal(18,2),
     valor decimal(18,2),
     tipo nvarchar(50),
 );
@@ -87,8 +91,7 @@ create table Cupon_descuento (
 create table Descuento_venta (
     id_descuento_venta decimal(18,0) IDENTITY(1,1) PRIMARY KEY,
     codigo_venta decimal(19,0),
-    importe decimal(18,2),
-    concepto nvarchar(50) 
+    importe decimal(18,2)
     FOREIGN KEY (codigo_venta) REFERENCES Venta(codigo_venta)        
 );
 
@@ -150,7 +153,6 @@ create table proveedor(
     cuit nvarchar(50) PRIMARY KEY,
     razon_social nvarchar(50),
     domicilio nvarchar(50),
-    telefono nvarchar(255),
     localidad nvarchar(255),
     mail nvarchar(50),
     codigo_postal decimal(18),
