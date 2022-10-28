@@ -70,7 +70,7 @@ create table Venta (
     medio_de_pago decimal(18,0),
     total decimal(18,2),
     desc_medio_de_pago decimal(18,2),
-    FOREIGN KEY (medio_de_pago) REFERENCES Medio_de_pago(id_medio_pago),
+    FOREIGN KEY (medio_de_pago) REFERENCES Medio_de_pago_venta(id_medio_pago),
     FOREIGN KEY (medio_de_envio) REFERENCES Medio_envio(id_medio),
     FOREIGN KEY (canal_de_venta) REFERENCES Canal(id_canal),
     FOREIGN KEY (id_cliente) REFERENCES Cliente(id_cliente)
@@ -166,7 +166,7 @@ create table Compra(
     total decimal(18,2),
     medio_de_pago decimal(18,0)
     foreign key(proveedor) references proveedor(cuit),
-    foreign key(medio_de_pago) references Medio_de_pago(id_medio_pago)
+    foreign key(medio_de_pago) references Medio_de_pago_compra(id_medio_pago)
 )
 
 create table Descuento_compra(
