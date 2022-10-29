@@ -50,7 +50,8 @@ create table nibble.Medio_de_pago_venta(
     id_medio_pago decimal(18,0) IDENTITY(1,1) PRIMARY KEY,
     nombre nvarchar(255),
     descuento decimal(18,2),
-    costo decimal(18,2)
+    costo decimal(18,2),
+    CONSTRAINT porcentaje_de_descuento_menor_a_1 CHECK (descuento >= 0 and descuento <= 1)
 );
 
 create table nibble.Medio_de_pago_compra(
@@ -73,7 +74,12 @@ create table nibble.Venta (
     FOREIGN KEY (medio_de_pago) REFERENCES nibble.Medio_de_pago_venta(id_medio_pago),
     FOREIGN KEY (medio_de_envio) REFERENCES nibble.Medio_envio(id_medio),
     FOREIGN KEY (canal_de_venta) REFERENCES nibble.Canal(id_canal),
-    FOREIGN KEY (id_cliente) REFERENCES nibble.Cliente(id_cliente)
+    FOREIGN KEY (id_cliente) REFERENCES nibble.Cliente(id_cliente),
+    CONSTRAINT medio_de_envio_en_ese_codigo_postal CHECK 
+    (medio_de_envio IN 
+    (SELECT id_medio FROM nibble.Envio_X_codigo_postal WHERE codigo_postal IN 
+    (SELECT codigo_postal FROM nibble.Cliente WHERE id_cliente = Venta.id_cliente))),
+    CONSTRAINT Importe_total_mayor_a_cero CHECK (total >= 0)
 );
 
 
@@ -86,6 +92,8 @@ create table nibble.Cupon_descuento (
     fecha_hasta date,
     valor decimal(18,2),
     tipo nvarchar(50),
+    CONSTRAINT fecha_de_expiracion_antes_de_la_fecha_de_inicio CHECK (fecha_hasta >= fecha_desde),
+    CONSTRAINT porcentaje_menor_a_1 CHECK (tipo = 'Tipo Descuento Monto Fijo' or valor <= 1)
 );
 
 create table nibble.Descuento_venta (
@@ -133,7 +141,8 @@ create table nibble.Producto_X_Variante(
     precio_compra decimal(18,2),
     stock decimal(20,0),
     FOREIGN KEY (cod_producto) REFERENCES nibble.Producto(cod_producto),
-    FOREIGN KEY (descripcion_variante, tipo_variante) REFERENCES nibble.Variante(descripcion_variante, tipo_variante)
+    FOREIGN KEY (descripcion_variante, tipo_variante) REFERENCES nibble.Variante(descripcion_variante, tipo_variante),
+    CONSTRAINT Combinacion_unica_producto_y_variante UNIQUE (cod_producto, descripcion_variante, tipo_variante)
 )
 
 create table nibble.Venta_X_Producto (
@@ -144,7 +153,8 @@ create table nibble.Venta_X_Producto (
     total_por_producto decimal(18,2),
     FOREIGN KEY (codigo_venta) REFERENCES nibble.Venta(codigo_venta),
     FOREIGN KEY (producto_variante) REFERENCES nibble.Producto_X_Variante(cod_producto_X_variante),
-    CONSTRAINT PK_Venta_X_Producto PRIMARY KEY (codigo_venta, producto_variante)
+    CONSTRAINT PK_Venta_X_Producto PRIMARY KEY (codigo_venta, producto_variante),
+    CONSTRAINT Stock_suficiente CHECK (cantidad <= (select stock from nibble.Producto_X_Variante where cod_producto_X_variante = producto_variante))
 );
 
 /* COMPRAS */
@@ -166,14 +176,16 @@ create table nibble.Compra(
     total decimal(18,2),
     medio_de_pago decimal(18,0)
     foreign key(proveedor) REFERENCES nibble.proveedor(cuit),
-    foreign key(medio_de_pago) REFERENCES nibble.Medio_de_pago_compra(id_medio_pago_compra)
+    foreign key(medio_de_pago) REFERENCES nibble.Medio_de_pago_compra(id_medio_pago_compra),
+    CONSTRAINT Importe_total_mayor_a_cero CHECK (total >= 0)
 )
 
 create table nibble.Descuento_compra(
     codigo_descuento_compra decimal(19,0) PRIMARY KEY,
     compra decimal(19,0) not null,
     valor decimal(18,2)
-    foreign key(compra) REFERENCES nibble.Compra(numero_compra)
+    foreign key(compra) REFERENCES nibble.Compra(numero_compra),
+    CONSTRAINT porcentaje_descuento_menor_a_1 CHECK (valor <= 1)
 )
 
 create table nibble.Compra_X_Producto(
@@ -184,5 +196,5 @@ create table nibble.Compra_X_Producto(
 	total_por_producto decimal(18,2),
     foreign key(compra) REFERENCES nibble.Compra(numero_compra),
     foreign key(producto) REFERENCES nibble.Producto_X_Variante(cod_producto_X_variante),
-    CONSTRAINT PK_Compra_X_Producto PRIMARY KEY (compra, producto),
+    CONSTRAINT PK_Compra_X_Producto PRIMARY KEY (compra, producto)
 );

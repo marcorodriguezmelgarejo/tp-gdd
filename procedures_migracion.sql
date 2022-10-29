@@ -220,7 +220,7 @@ as
     group by VENTA_CODIGO, VENTA_FECHA, VENTA_CANAL, VENTA_MEDIO_ENVIO, VENTA_ENVIO_PRECIO, VENTA_MEDIO_PAGO, VENTA_TOTAL, CLIENTE_DNI, CLIENTE_APELLIDO, CLIENTE_NOMBRE
 GO
 
--- chequear que no se use el mismo cupon en la misma venta.
+-- chequear que no se use el mismo cupon en la misma venta. Poner distinct?
 create proc nibble.migracion_cupon_decuento_X_venta
 as
     insert into nibble.Cupon_descuento_X_venta(codigo, codigo_venta, importe)
