@@ -52,3 +52,10 @@ where (CLIENTE_DNI is not null) or (CLIENTE_APELLIDO is not null)
 group by CLIENTE_DNI, CLIENTE_APELLIDO
 order by cantidad_telefonos desc
 
+-- esquemas de la base de datos
+use GD2C2022
+
+select * from sys.schemas
+
+select t.name, t.schema_id
+from sys.tables t
