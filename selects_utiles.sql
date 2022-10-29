@@ -10,6 +10,21 @@ from gd_esquema.Maestra
 where PRODUCTO_CODIGO is not null
 order by PRODUCTO_CODIGO
 
+-- INFO DE LAS COMPRAS
+select COMPRA_NUMERO, COMPRA_FECHA, PROVEEDOR_CUIT, COMPRA_TOTAL, COMPRA_MEDIO_PAGO, DESCUENTO_COMPRA_CODIGO, DESCUENTO_COMPRA_VALOR,
+PRODUCTO_VARIANTE_CODIGO, COMPRA_PRODUCTO_CANTIDAD, COMPRA_PRODUCTO_PRECIO
+from gd_esquema.Maestra
+where COMPRA_NUMERO is not null
+order by DESCUENTO_COMPRA_CODIGO desc
+
+select * from gd_esquema.Maestra
+order by COMPRA_NUMERO
+where 
+
+where COMPRA_NUMERO is not null
+from gd_esquema.Maestra
+where COMPRA_NUMERO is not null
+
 -- Los descuentos por medio de pago en todas las ventas
 select VENTA_CODIGO, 
 sum(isnull(VENTA_PRODUCTO_CANTIDAD,0) * isnull(VENTA_PRODUCTO_PRECIO,0)) as total_productos,

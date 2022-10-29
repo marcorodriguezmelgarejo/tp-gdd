@@ -121,17 +121,17 @@ AS
     where VENTA_MEDIO_ENVIO is not null
 GO
 
-CREATE PROC migracion_producto_X_variante
+CREATE PROC migracion_producto_X_variante 
 AS
     insert into Producto_X_variante(cod_producto_X_variante, cod_producto, descripcion_variante, tipo_variante, stock, precio_venta, precio_compra)
     select PRODUCTO_VARIANTE_CODIGO, PRODUCTO_CODIGO, PRODUCTO_VARIANTE, PRODUCTO_TIPO_VARIANTE,
         (select sum(COMPRA_PRODUCTO_CANTIDAD)
         from gd_esquema.Maestra
-        where PRODUCTO_VARIANTE_CODIGO = m.PRODUCTO_VARIANTE_CODIGO)
+        where PRODUCTO_VARIANTE_CODIGO = m.PRODUCTO_VARIANTE_CODIGO and COMPRA_PRODUCTO_CANTIDAD is not null)
         -
         (select sum(VENTA_PRODUCTO_CANTIDAD)
         from gd_esquema.Maestra
-        where PRODUCTO_VARIANTE_CODIGO = m.PRODUCTO_VARIANTE_CODIGO) as stock,
+        where PRODUCTO_VARIANTE_CODIGO = m.PRODUCTO_VARIANTE_CODIGO and VENTA_PRODUCTO_CANTIDAD is not null) as stock,
         (select top 1 VENTA_PRODUCTO_PRECIO
         from gd_esquema.Maestra
         where PRODUCTO_VARIANTE_CODIGO = m.PRODUCTO_VARIANTE_CODIGO
@@ -216,8 +216,8 @@ as
         where VENTA_CODIGO = m.VENTA_CODIGO
         group by VENTA_CODIGO),0) as porc_descuento_medio_pago
     from gd_esquema.Maestra as m
+    where VENTA_CODIGO is not null
     group by VENTA_CODIGO, VENTA_FECHA, VENTA_CANAL, VENTA_MEDIO_ENVIO, VENTA_ENVIO_PRECIO, VENTA_MEDIO_PAGO, VENTA_TOTAL, CLIENTE_DNI, CLIENTE_APELLIDO, CLIENTE_NOMBRE
-
 GO
 
 -- chequear que no se use el mismo cupon en la misma venta.
