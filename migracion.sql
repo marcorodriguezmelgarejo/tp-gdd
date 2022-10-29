@@ -16,4 +16,10 @@ as
     exec migracion_compra
     exec migracion_producto_X_variante
     exec migracion_descuento_compra
+    exec migracion_compra_X_producto
+    exec migracion_venta
+    exec migracion_descuento_venta
+    exec migracion_cupon_decuento_X_venta
+    exec migracion_venta_X_producto
+    -- exec migracion_cupon_decuento_X_venta
 go

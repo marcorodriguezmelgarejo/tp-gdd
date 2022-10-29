@@ -170,7 +170,7 @@ create table Compra(
 )
 
 create table Descuento_compra(
-    codigo_descuento_compra decimal(19,0) IDENTITY(1,1) PRIMARY KEY,
+    codigo_descuento_compra decimal(19,0) PRIMARY KEY,
     compra decimal(19,0) not null,
     valor decimal(18,2)
     foreign key(compra) references Compra(numero_compra)

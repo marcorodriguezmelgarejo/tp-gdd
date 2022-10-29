@@ -67,6 +67,7 @@ AS
      CLIENTE_LOCALIDAD,
      CLIENTE_CODIGO_POSTAL from gd_esquema.Maestra
     where CLIENTE_DNI is not null
+
 GO
 
 CREATE PROC migracion_canal
@@ -164,23 +165,84 @@ AS
     where COMPRA_NUMERO is not null 
 GO
 
+
+
 create proc migracion_descuento_compra
 as
-    insert into Descuento_compra(compra, valor)
-    select COMPRA_NUMERO,
-        dbo.maximoDecimal18_2(0, sum(COMPRA_PRODUCTO_CANTIDAD*COMPRA_PRODUCTO_PRECIO) - COMPRA_TOTAL)
+    insert into Descuento_compra(compra, codigo_descuento_compra, valor)
+    select COMPRA_NUMERO, DESCUENTO_COMPRA_CODIGO, DESCUENTO_COMPRA_VALOR
     from gd_esquema.Maestra
-    where COMPRA_NUMERO is not null
-    group by COMPRA_NUMERO, COMPRA_TOTAL
+    where DESCUENTO_COMPRA_CODIGO is not null
+    
+    
+go
+
+create proc migracion_descuento_venta
+as
+
+    insert into Descuento_venta(codigo_venta, importe)
+    select VENTA_CODIGO, VENTA_DESCUENTO_IMPORTE
+    from gd_esquema.Maestra
+    where VENTA_CODIGO is not null and VENTA_DESCUENTO_CONCEPTO = 'Otros'
+    ORDER by VENTA_CODIGO
+
+go
+
+create proc migracion_compra_X_producto
+as
+    insert into Compra_X_Producto(producto, compra, precio_unitario, cantidad, total_por_producto)
+    select PRODUCTO_VARIANTE_CODIGO, COMPRA_NUMERO, COMPRA_PRODUCTO_PRECIO, sum(COMPRA_PRODUCTO_CANTIDAD) as cant, COMPRA_PRODUCTO_PRECIO * sum(COMPRA_PRODUCTO_CANTIDAD) as total
+    from gd_esquema.Maestra
+    where COMPRA_NUMERO is not null and PRODUCTO_VARIANTE_CODIGO is not null
+    group by PRODUCTO_VARIANTE_CODIGO, COMPRA_NUMERO, COMPRA_PRODUCTO_PRECIO
 go
 
 
+CREATE proc migracion_venta
+as
+    insert into Venta(codigo_venta, fecha, id_cliente, canal_de_venta, medio_de_envio, costo_envio, medio_de_pago, total, desc_medio_de_pago)
+    select 
+        VENTA_CODIGO,
+        VENTA_FECHA,
+        (select id_cliente from Cliente where DNI = CLIENTE_DNI and nombre = CLIENTE_NOMBRE and apellido = CLIENTE_APELLIDO),
+        (select id_canal from Canal where nombre = VENTA_CANAL),
+        (select id_medio from Medio_envio where nombre = VENTA_MEDIO_ENVIO),
+        VENTA_ENVIO_PRECIO,
+        (select id_medio_pago from Medio_de_pago_venta where nombre = VENTA_MEDIO_PAGO),
+        VENTA_TOTAL,
+        isnull((select isnull((select sum(VENTA_DESCUENTO_IMPORTE) from gd_esquema.Maestra where VENTA_CODIGO = m1.VENTA_CODIGO and VENTA_DESCUENTO_CONCEPTO = VENTA_MEDIO_PAGO),0) /
+        sum(isnull(VENTA_PRODUCTO_CANTIDAD,0) * isnull(VENTA_PRODUCTO_PRECIO,0))
+        from gd_esquema.Maestra m1
+        where VENTA_CODIGO = m.VENTA_CODIGO
+        group by VENTA_CODIGO),0) as porc_descuento_medio_pago
+    from gd_esquema.Maestra as m
+    group by VENTA_CODIGO, VENTA_FECHA, VENTA_CANAL, VENTA_MEDIO_ENVIO, VENTA_ENVIO_PRECIO, VENTA_MEDIO_PAGO, VENTA_TOTAL, CLIENTE_DNI, CLIENTE_APELLIDO, CLIENTE_NOMBRE
 
+GO
 
+-- chequear que no se use el mismo cupon en la misma venta.
+create proc migracion_cupon_decuento_X_venta
+as
+    insert into Cupon_descuento_X_venta(codigo, codigo_venta, importe)
+    select
+        VENTA_CUPON_CODIGO,
+        VENTA_CODIGO,
+        VENTA_CUPON_IMPORTE
+    from gd_esquema.Maestra
+    where VENTA_CUPON_CODIGO is not null and VENTA_CODIGO is not null
+go
 
-
-
-
-
+create proc migracion_venta_X_producto
+as
+    insert into Venta_X_Producto(producto_variante, codigo_venta, precio_unitario, cantidad, total_por_producto)
+    select PRODUCTO_VARIANTE_CODIGO,
+        VENTA_CODIGO,
+        VENTA_PRODUCTO_PRECIO,
+        sum(VENTA_PRODUCTO_CANTIDAD) as cant, 
+        VENTA_PRODUCTO_PRECIO * sum(VENTA_PRODUCTO_CANTIDAD) as total
+    from gd_esquema.Maestra
+    where VENTA_CODIGO is not null and PRODUCTO_VARIANTE_CODIGO is not null
+    group by PRODUCTO_VARIANTE_CODIGO, VENTA_CODIGO, VENTA_PRODUCTO_PRECIO
+go
 
 
