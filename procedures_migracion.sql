@@ -122,32 +122,28 @@ GO
 
 CREATE PROC migracion_producto_X_variante
 AS
-    -- BIEN    
+    insert into Producto_X_variante(cod_producto_X_variante, cod_producto, descripcion_variante, tipo_variante, stock, precio_venta, precio_compra)
     select PRODUCTO_VARIANTE_CODIGO, PRODUCTO_CODIGO, PRODUCTO_VARIANTE, PRODUCTO_TIPO_VARIANTE,
-    -- STOCK
-        (select sum(COMPRA_PRODUCTO_CANTIDAD) as stock 
+        (select sum(COMPRA_PRODUCTO_CANTIDAD)
         from gd_esquema.Maestra
         where PRODUCTO_VARIANTE_CODIGO = m.PRODUCTO_VARIANTE_CODIGO)
         -
-        (select sum(VENTA_PRODUCTO_CANTIDAD) as stock 
+        (select sum(VENTA_PRODUCTO_CANTIDAD)
         from gd_esquema.Maestra
-        where PRODUCTO_VARIANTE_CODIGO = m.PRODUCTO_VARIANTE_CODIGO) as stock
+        where PRODUCTO_VARIANTE_CODIGO = m.PRODUCTO_VARIANTE_CODIGO) as stock,
+        (select top 1 VENTA_PRODUCTO_PRECIO
+        from gd_esquema.Maestra
+        where PRODUCTO_VARIANTE_CODIGO = m.PRODUCTO_VARIANTE_CODIGO
+        order by VENTA_FECHA DESC, VENTA_PRODUCTO_PRECIO DESC) as precio_actual_venta, -- Ordena tambien por VENTA_PRODUCTO_PRECIO para tomar el precio mas caro de esa venta en el caso que figuren varias compras de ese prod en la misma fecha
+        (select top 1 COMPRA_PRODUCTO_PRECIO
+        from gd_esquema.Maestra
+        where PRODUCTO_VARIANTE_CODIGO = m.PRODUCTO_VARIANTE_CODIGO
+        order by COMPRA_FECHA DESC, COMPRA_PRODUCTO_PRECIO DESC) as precio_actual_compra -- Idem anterior
     from gd_esquema.Maestra m
     where PRODUCTO_VARIANTE_CODIGO is not null
-
-
-    
-    --precio de la ultima venta que se hizo de una variante
-    select PRODUCTO_VARIANTE_CODIGO, VENTA_PRODUCTO_PRECIO
-    from gd_esquema.Maestra
-    where PRODUCTO_VARIANTE_CODIGO is not null and VENTA_PRODUCTO_PRECIO is not null
-    order by VENTA_FECHA DESC
+    group by PRODUCTO_VARIANTE_CODIGO, PRODUCTO_CODIGO, PRODUCTO_VARIANTE, PRODUCTO_TIPO_VARIANTE
     
 GO
-
-
-
-
 
 CREATE PROC migracion_medio_de_pago_compra
 as
@@ -167,6 +163,18 @@ AS
     from gd_esquema.Maestra
     where COMPRA_NUMERO is not null 
 GO
+
+create proc migracion_descuento_compra
+as
+    insert into Descuento_compra(compra, valor)
+    select COMPRA_NUMERO,
+        dbo.maximoDecimal18_2(0, sum(COMPRA_PRODUCTO_CANTIDAD*COMPRA_PRODUCTO_PRECIO) - COMPRA_TOTAL)
+    from gd_esquema.Maestra
+    where COMPRA_NUMERO is not null
+    group by COMPRA_NUMERO, COMPRA_TOTAL
+go
+
+
 
 
 

@@ -36,3 +36,4 @@ from gd_esquema.Maestra
 where (CLIENTE_DNI is not null) or (CLIENTE_APELLIDO is not null)
 group by CLIENTE_DNI, CLIENTE_APELLIDO
 order by cantidad_telefonos desc
+

@@ -1,5 +1,6 @@
 CREATE PROC migracion
 as
+    -- PRIMERO CORRER FUNCIONES AUXILIARES.SQL
     exec migracion_provincia
     exec migracion_codigo_postal
     exec migracion_variante
@@ -13,4 +14,6 @@ as
     exec migracion_envio_X_codigo_postal
     exec migracion_medio_de_pago_compra
     exec migracion_compra
+    exec migracion_producto_X_variante
+    exec migracion_descuento_compra
 go
