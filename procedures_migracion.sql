@@ -143,7 +143,6 @@ AS
     from gd_esquema.Maestra m
     where PRODUCTO_VARIANTE_CODIGO is not null
     group by PRODUCTO_VARIANTE_CODIGO, PRODUCTO_CODIGO, PRODUCTO_VARIANTE, PRODUCTO_TIPO_VARIANTE
-    
 GO
 
 CREATE PROC nibble.migracion_medio_de_pago_compra
