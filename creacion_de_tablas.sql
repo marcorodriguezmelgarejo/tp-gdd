@@ -69,17 +69,14 @@ create table nibble.Venta (
     medio_de_envio decimal(18,0),
     costo_envio decimal(18,2),
     medio_de_pago decimal(18,0),
-    total decimal(18,2),
+    total decimal(18,2) DEFAULT 0,
     desc_medio_de_pago decimal(18,2),
+    costo_medio_de_pago decimal(18,2),
     FOREIGN KEY (medio_de_pago) REFERENCES nibble.Medio_de_pago_venta(id_medio_pago),
     FOREIGN KEY (medio_de_envio) REFERENCES nibble.Medio_envio(id_medio),
     FOREIGN KEY (canal_de_venta) REFERENCES nibble.Canal(id_canal),
     FOREIGN KEY (id_cliente) REFERENCES nibble.Cliente(id_cliente),
-    CONSTRAINT medio_de_envio_en_ese_codigo_postal CHECK 
-    (medio_de_envio IN 
-    (SELECT id_medio FROM nibble.Envio_X_codigo_postal WHERE codigo_postal IN 
-    (SELECT codigo_postal FROM nibble.Cliente WHERE id_cliente = Venta.id_cliente))),
-    CONSTRAINT Importe_total_mayor_a_cero CHECK (total >= 0)
+    CONSTRAINT Importe_total_venta_mayor_a_cero CHECK (total >= 0)
 );
 
 
@@ -153,8 +150,7 @@ create table nibble.Venta_X_Producto (
     total_por_producto decimal(18,2),
     FOREIGN KEY (codigo_venta) REFERENCES nibble.Venta(codigo_venta),
     FOREIGN KEY (producto_variante) REFERENCES nibble.Producto_X_Variante(cod_producto_X_variante),
-    CONSTRAINT PK_Venta_X_Producto PRIMARY KEY (codigo_venta, producto_variante),
-    CONSTRAINT Stock_suficiente CHECK (cantidad <= (select stock from nibble.Producto_X_Variante where cod_producto_X_variante = producto_variante))
+    CONSTRAINT PK_Venta_X_Producto PRIMARY KEY (codigo_venta, producto_variante)
 );
 
 /* COMPRAS */
@@ -173,11 +169,11 @@ create table nibble.Compra(
     numero_compra decimal(19,0) PRIMARY KEY,
     fecha date,
     proveedor nvarchar(50),
-    total decimal(18,2),
+    total decimal(18,2) DEFAULT 0,
     medio_de_pago decimal(18,0)
     foreign key(proveedor) REFERENCES nibble.proveedor(cuit),
     foreign key(medio_de_pago) REFERENCES nibble.Medio_de_pago_compra(id_medio_pago_compra),
-    CONSTRAINT Importe_total_mayor_a_cero CHECK (total >= 0)
+    CONSTRAINT Importe_total_compra_mayor_a_cero CHECK (total >= 0)
 )
 
 create table nibble.Descuento_compra(
@@ -198,3 +194,15 @@ create table nibble.Compra_X_Producto(
     foreign key(producto) REFERENCES nibble.Producto_X_Variante(cod_producto_X_variante),
     CONSTRAINT PK_Compra_X_Producto PRIMARY KEY (compra, producto)
 );
+
+-- EJECUTE HASTA ACA
+
+-- Constraints
+alter table nibble.Venta add
+CONSTRAINT medio_de_envio_en_ese_codigo_postal CHECK 
+(medio_de_envio in 
+(select id_medio from nibble.Envio_X_codigo_postal where codigo_postal = nibble.codigoPostalDeCliente(id_cliente)))
+
+alter table nibble.Venta_X_Producto add
+CONSTRAINT Stock_suficiente CHECK 
+(cantidad <= nibble.stockDeProducto(producto_variante))
