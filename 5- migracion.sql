@@ -19,5 +19,5 @@ as
     exec nibble.migracion_venta
     exec nibble.migracion_descuento_venta
     exec nibble.migracion_venta_X_producto
-    -- exec nibble.migracion_cupon_decuento_X_venta
+    exec nibble.migracion_cupon_decuento_X_venta
 go

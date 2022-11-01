@@ -224,7 +224,7 @@ GO
 create proc nibble.migracion_cupon_decuento_X_venta
 as
     insert into nibble.Cupon_descuento_X_venta(codigo, codigo_venta, importe)
-    select
+    select DISTINCT
         VENTA_CUPON_CODIGO,
         VENTA_CODIGO,
         VENTA_CUPON_IMPORTE

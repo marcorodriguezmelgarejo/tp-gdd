@@ -71,3 +71,26 @@ drop proc nibble.migracion_venta
 drop proc nibble.migracion_cupon_decuento_X_venta
 drop proc nibble.migracion_venta_X_producto
 
+
+-- PROBAR DESPUES DEL SCRIPT
+
+select * from nibble.provincia
+select * from nibble.codigo_postal
+select * from nibble.variante
+select * from nibble.medio_envio
+select * from nibble.cliente
+select * from nibble.canal
+select * from nibble.medio_de_pago_venta
+select * from nibble.producto
+select * from nibble.proveedor
+select * from nibble.cupon_descuento
+select * from nibble.envio_X_codigo_postal
+select * from nibble.medio_de_pago_compra
+select * from nibble.compra
+select * from nibble.producto_X_variante
+select * from nibble.descuento_compra
+select * from nibble.compra_X_producto
+select * from nibble.venta
+select * from nibble.descuento_venta
+select * from nibble.cupon_descuento_X_venta
+select * from nibble.venta_X_producto
