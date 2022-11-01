@@ -194,15 +194,4 @@ create table nibble.Compra_X_Producto(
     foreign key(producto) REFERENCES nibble.Producto_X_Variante(cod_producto_X_variante),
     CONSTRAINT PK_Compra_X_Producto PRIMARY KEY (compra, producto)
 );
-
--- EJECUTE HASTA ACA
-
--- Constraints
-alter table nibble.Venta add
-CONSTRAINT medio_de_envio_en_ese_codigo_postal CHECK 
-(medio_de_envio in 
-(select id_medio from nibble.Envio_X_codigo_postal where codigo_postal = nibble.codigoPostalDeCliente(id_cliente)))
-
-alter table nibble.Venta_X_Producto add
-CONSTRAINT Stock_suficiente CHECK 
-(cantidad <= nibble.stockDeProducto(producto_variante))
+GO

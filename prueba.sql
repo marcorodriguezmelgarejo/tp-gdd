@@ -1,48 +1,73 @@
-	Provincia
-    Codigo_postal
-    Variante
-    Medio_envio
-    Cliente
-    Canal
-    Medio_de_pago_venta
-    Producto
-    proveedor
-    Cupon_descuento
-    Envio_X_codigo_postal
-    Medio_de_pago_compra
-    Compra
-    Producto_X_Variante
-    Descuento_compra
-    Compra_X_Producto
-    Venta
-    Descuento_venta
-    Cupon_descuento_X_venta
-    Venta_X_Product
-
+	drop table Provincia
+    drop table Codigo_postal
+    drop table Variante
+    drop table Medio_envio
+    drop table Cliente
+    drop table Canal
+    drop table Medio_de_pago_venta
+    drop table Producto
+    drop table proveedor
+    drop table Cupon_descuento
+    drop table Envio_X_codigo_postal
+    drop table Medio_de_pago_compra
+    drop table Compra
+    drop table Producto_X_Variante
+    drop table Descuento_compra
+    drop table Compra_X_Producto
+    drop table Venta
+    drop table Descuento_venta
+    drop table Cupon_descuento_X_venta
+    drop table Venta_X_Product
 
 use GD2015C1
 drop database GD2C2022
 CREATE database GD2C2022
 
 resetear las tablas:
-    delete from nibble.venta_X_producto
-    delete from nibble.cupon_descuento_X_venta
-    delete from nibble.descuento_venta
-    delete from nibble.venta
-    delete from nibble.compra_X_producto
-    delete from nibble.descuento_compra
-    delete from nibble.producto_X_variante
-    delete from nibble.compra
-    delete from nibble.medio_de_pago_compra
-    delete from nibble.envio_X_codigo_postal
-    delete from nibble.cupon_descuento
-    delete from nibble.proveedor
-    delete from nibble.producto
-    delete from nibble.medio_de_pago_venta
-    delete from nibble.canal
-    delete from nibble.cliente
-    delete from nibble.medio_envio
-    delete from nibble.variante
-    delete from nibble.codigo_postal
-	delete from nibble.provincia
+    drop table nibble.venta_X_producto
+    drop table nibble.cupon_descuento_X_venta
+    drop table nibble.descuento_venta
+    drop table nibble.venta
+    drop table nibble.compra_X_producto
+    drop table nibble.descuento_compra
+    drop table nibble.producto_X_variante
+    drop table nibble.compra
+    drop table nibble.medio_de_pago_compra
+    drop table nibble.envio_X_codigo_postal
+    drop table nibble.cupon_descuento
+    drop table nibble.proveedor
+    drop table nibble.producto
+    drop table nibble.medio_de_pago_venta
+    drop table nibble.canal
+    drop table nibble.cliente
+    drop table nibble.medio_envio
+    drop table nibble.variante
+    drop table nibble.codigo_postal
+	drop table nibble.provincia
+
+    
     exec nibble.migracion
+
+
+
+drop PROC nibble.migracion_provincia
+drop PROC nibble.migracion_codigo_postal
+drop PROC nibble.migracion_variante
+drop PROC nibble.migracion_medio_envio
+drop PROC nibble.migracion_medio_de_pago_venta
+drop PROC nibble.migracion_cliente
+drop PROC nibble.migracion_canal
+drop PROC nibble.migracion_producto
+drop proc nibble.migracion_proveedor
+drop proc nibble.migracion_cupon_descuento
+drop PROC nibble.migracion_envio_X_codigo_postal
+drop PROC nibble.migracion_producto_X_variante 
+drop PROC nibble.migracion_medio_de_pago_compra
+drop PROC nibble.migracion_compra
+drop proc nibble.migracion_descuento_compra
+drop proc nibble.migracion_descuento_venta
+drop proc nibble.migracion_compra_X_producto
+drop proc nibble.migracion_venta
+drop proc nibble.migracion_cupon_decuento_X_venta
+drop proc nibble.migracion_venta_X_producto
+
