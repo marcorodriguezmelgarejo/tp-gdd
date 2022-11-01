@@ -132,8 +132,8 @@ create table nibble.Producto(
 create table nibble.Producto_X_Variante(
     cod_producto_X_variante nvarchar(50) PRIMARY KEY,
     cod_producto nvarchar(50) not null,
-    descripcion_variante nvarchar(50) not null,
-    tipo_variante nvarchar(50) not null,
+    descripcion_variante nvarchar(50), -- son nulleables estos dos campos porque puede haber productos sin variante
+    tipo_variante nvarchar(50),
     precio_venta decimal(18,2),
     precio_compra decimal(18,2),
     stock decimal(20,0),

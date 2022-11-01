@@ -176,9 +176,6 @@ BEGIN
 END
 go
 
-
-
-
 create trigger actualizar_precio_producto_en_venta on nibble.Venta_X_Producto
 after insert
 as
@@ -209,16 +206,17 @@ create trigger calcular_total_venta on nibble.Venta_X_Producto
 after insert
 as
 BEGIN       
-    declare insertados cursor for select codigo_venta, producto_variante, cantidad, precio_unitario, total_por_producto from inserted
+    declare insertados cursor for select codigo_venta, producto_variante, cantidad, precio_unitario, total_por_producto, desc_medio_de_pago from inserted
 
     declare @cantidad decimal(18,0)
     declare @precio_unitario decimal(18,2)
     declare @codigo_venta decimal(19,0)
     declare @producto_variante nvarchar(50)
     declare @total_por_producto decimal(18,2)
+    declare @desc_medio_de_pago decimal(18,2)
 
     open insertados
-    fetch from insertados into @codigo_venta, @producto_variante, @cantidad, @precio_unitario, @total_por_producto 
+    fetch from insertados into @codigo_venta, @producto_variante, @cantidad, @precio_unitario, @total_por_producto, @desc_medio_de_pago
     while @@fetch_status = 0
     BEGIN
         if (select canal_de_venta from nibble.Venta where codigo_venta = @codigo_venta) != 'Web'
@@ -228,9 +226,10 @@ BEGIN
             where codigo_venta = @codigo_venta and producto_variante = @producto_variante
             
             update nibble.Venta
-            set total = total + (@cantidad * @precio_unitario) -- * (1-descuento-descuentoCuponPorcentual)
+            set total = total + (@cantidad * @precio_unitario) * (1 - @desc_medio_de_pago) -- * (1 - @desc_medio_de_pago - descuentoCuponesPorcentuales(@codigo_venta)) (no lo hacemos porque consideramos que los descuentos porcentuales se aplican después de cargar los productos)
             where codigo_venta = @codigo_venta
 
+            -- Envio gratis. Definimos 1000 como valor arbitrario.
             if (select total from nibble.Venta where codigo_venta = @codigo_venta) > 1000
             BEGIN
                 update nibble.Venta
@@ -239,7 +238,7 @@ BEGIN
             END
         END
 
-        fetch from insertados into @codigo_venta, @producto_variante, @cantidad, @precio_unitario, @total_por_producto 
+        fetch from insertados into @codigo_venta, @producto_variante, @cantidad, @precio_unitario, @total_por_producto, @desc_medio_de_pago
     END
 
     close insertados
@@ -253,29 +252,38 @@ after insert
 as
 BEGIN       
 
-    declare insertados cursor for select codigo_venta, importe from inserted
+    declare insertados cursor for select codigo_venta, codigo from inserted
 
     declare @codigo_venta decimal(19,0)
+    declare @codigo_cupon nvarchar(255)
     declare @importe decimal(18,2)
 
     open insertados
-    fetch from insertados into @codigo_venta, @importe
+    fetch from insertados into @codigo_venta, @codigo_cupon
     while @@fetch_status = 0
     BEGIN
-        -- desnormalizar el porcentaje de descuento en esta tabla
-
         if (select canal_de_venta from nibble.Venta where codigo_venta = @codigo_venta) != 'Web'
         BEGIN
-        -- si es de monto fijo
-        update nibble.Venta
-        set total = total - @importe
-        where codigo_venta = @codigo_venta
-        -- si es porcentual
-        -- aplicarlo aca y despues en el trigger de venta_X_producto cada vez que ingreso un producto nuevo 
-        -- (con una funcion que busque todos los descuentos porcentuales por cupon para una venta)
+            if (select tipo from nibble.Cupon_descuento where codigo = @codigo_venta) = 'Tipo Descuento Porcentaje'
+            BEGIN
+                set @importe = (select valor from nibble.Cupon_descuento where codigo = @codigo_cupon) * (select total from nibble.Venta where codigo_venta = @codigo_venta)
+                -- si insertaramos mas productos en la venta despues de aplicarle el cupon, deberiamos volver a calcular este valor 
+            END
+            else -- monto fijo
+            BEGIN
+                set @importe = (select valor from nibble.Cupon_descuento where codigo = @codigo_cupon)
+            END
+
+            update nibble.Cupon_descuento_X_venta
+            set importe = @importe
+            where codigo_venta = @codigo_venta and codigo = @codigo_cupon
+
+            update nibble.Venta
+            set total = total - @importe
+            where codigo_venta = @codigo_venta
 
         END
-        fetch from insertados into @codigo_venta, @importe
+        fetch from insertados into @codigo_venta, @codigo_cupon
     END
 
     close insertados
@@ -301,7 +309,7 @@ BEGIN
         if (select canal_de_venta from nibble.Venta where codigo_venta = @codigo_venta) != 'Web'
         BEGIN
         update nibble.Venta
-        set total = nibble.maximo_decimal_18_2( total - @importe, 0)
+        set total = nibble.maximo_decimal_18_2(total - @importe, 0)
         where codigo_venta = @codigo_venta
         END
         fetch from insertados into @codigo_venta, @importe
@@ -342,7 +350,7 @@ BEGIN
         END
 
 
-        fetch from insertados into @codigo_venta, @total
+        fetch from insertados into @codigo_venta, @medio_de_envio, @medio_de_pago
     END
 
     close insertados

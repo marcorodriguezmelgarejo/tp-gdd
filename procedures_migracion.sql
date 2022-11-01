@@ -199,7 +199,7 @@ go
 
 CREATE proc nibble.migracion_venta
 as
-    insert into nibble.Venta(codigo_venta, fecha, id_cliente, canal_de_venta, medio_de_envio, costo_envio, medio_de_pago, total, desc_medio_de_pago)
+    insert into nibble.Venta(codigo_venta, fecha, id_cliente, canal_de_venta, medio_de_envio, costo_envio, medio_de_pago, total, desc_medio_de_pago, costo_medio_de_pago)
     select 
         VENTA_CODIGO,
         VENTA_FECHA,
@@ -213,10 +213,11 @@ as
         sum(isnull(VENTA_PRODUCTO_CANTIDAD,0) * isnull(VENTA_PRODUCTO_PRECIO,0))
         from gd_esquema.Maestra m1
         where VENTA_CODIGO = m.VENTA_CODIGO
-        group by VENTA_CODIGO),0) as porc_descuento_medio_pago
+        group by VENTA_CODIGO),0) as porc_descuento_medio_pago,
+        VENTA_MEDIO_PAGO_COSTO
     from gd_esquema.Maestra as m
     where VENTA_CODIGO is not null
-    group by VENTA_CODIGO, VENTA_FECHA, VENTA_CANAL, VENTA_MEDIO_ENVIO, VENTA_ENVIO_PRECIO, VENTA_MEDIO_PAGO, VENTA_TOTAL, CLIENTE_DNI, CLIENTE_APELLIDO, CLIENTE_NOMBRE
+    group by VENTA_CODIGO, VENTA_FECHA, VENTA_CANAL, VENTA_MEDIO_ENVIO, VENTA_ENVIO_PRECIO, VENTA_MEDIO_PAGO, VENTA_TOTAL, CLIENTE_DNI, CLIENTE_APELLIDO, CLIENTE_NOMBRE, VENTA_MEDIO_PAGO_COSTO
 GO
 
 -- chequear que no se use el mismo cupon en la misma venta. Poner distinct?
