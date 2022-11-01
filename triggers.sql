@@ -206,21 +206,24 @@ create trigger calcular_total_venta on nibble.Venta_X_Producto
 after insert
 as
 BEGIN       
-    declare insertados cursor for select codigo_venta, producto_variante, cantidad, precio_unitario, total_por_producto, desc_medio_de_pago from inserted
+    declare insertados cursor for select codigo_venta, producto_variante, cantidad, precio_unitario, total_por_producto from inserted
 
     declare @cantidad decimal(18,0)
     declare @precio_unitario decimal(18,2)
     declare @codigo_venta decimal(19,0)
     declare @producto_variante nvarchar(50)
     declare @total_por_producto decimal(18,2)
+
     declare @desc_medio_de_pago decimal(18,2)
 
     open insertados
-    fetch from insertados into @codigo_venta, @producto_variante, @cantidad, @precio_unitario, @total_por_producto, @desc_medio_de_pago
+    fetch from insertados into @codigo_venta, @producto_variante, @cantidad, @precio_unitario, @total_por_producto
     while @@fetch_status = 0
     BEGIN
         if (select canal_de_venta from nibble.Venta where codigo_venta = @codigo_venta) != 'Web'
         BEGIN
+            set @desc_medio_de_pago = (select desc_medio_de_pago from nibble.Venta where codigo_venta = @codigo_venta)
+
             update nibble.Venta_X_Producto
             set total_por_producto = @cantidad * @precio_unitario
             where codigo_venta = @codigo_venta and producto_variante = @producto_variante
@@ -238,7 +241,7 @@ BEGIN
             END
         END
 
-        fetch from insertados into @codigo_venta, @producto_variante, @cantidad, @precio_unitario, @total_por_producto, @desc_medio_de_pago
+        fetch from insertados into @codigo_venta, @producto_variante, @cantidad, @precio_unitario, @total_por_producto
     END
 
     close insertados
@@ -343,8 +346,8 @@ BEGIN
             update nibble.Venta set
             costo_envio = (select costo_envio from Envio_X_codigo_postal 
                 where medio_de_envio = @medio_de_envio and codigo_postal = nibble.codigoPostalDeCliente(@id_cliente)),
-            costo_medio_pago = (select costo from Medio_de_pago where id_medio_pago = @medio_de_pago),
-            desc_medio_pago = (select descuento from Medio_de_pago where id_medio_pago = @medio_de_pago)
+            costo_medio_de_pago = (select costo from Medio_de_pago where id_medio_pago = @medio_de_pago),
+            desc_medio_de_pago = (select descuento from Medio_de_pago where id_medio_pago = @medio_de_pago)
             where codigo_venta = @codigo_venta
 
         END
@@ -356,3 +359,17 @@ BEGIN
     close insertados
     deallocate insertados
 END
+
+-- Prueba
+crear la Venta
+ver que esten bien los campos
+agregar productos
+ver que esten bien los campos de ventaXprod
+ver si se aplicaron el descuento por medio de pago
+agregar mas y ver si se aplica el envio gratis
+agregar el descuento especial 
+ver si se aplico
+agregar cupon monto fijo
+ver si se aplicaron
+agregar cupon porcentaje
+ver si se aplicaron
