@@ -15,7 +15,7 @@ create table nibble.Categoria(
 )
 
 create table nibble.Marca(
-    id_categoria decimal(18,0) IDENTITY(1,1) PRIMARY KEY,
+    id_marca decimal(18,0) IDENTITY(1,1) PRIMARY KEY,
     descripcion nvarchar(255)
 )
 
@@ -146,9 +146,9 @@ create table nibble.Producto(
     material decimal(18,0),
     marca decimal(18,0),
     categoria decimal(18,0),
-    FOREIGN KEY (material) REFERENCES nibble.Material(material),
-    FOREIGN KEY (marca) REFERENCES nibble.Marca(marca),
-    FOREIGN KEY (categoria) REFERENCES nibble.Categoria(categoria)
+    FOREIGN KEY (material) REFERENCES nibble.Material(id_material),
+    FOREIGN KEY (marca) REFERENCES nibble.Marca(id_marca),
+    FOREIGN KEY (categoria) REFERENCES nibble.Categoria(id_categoria)
 );
 
 create table nibble.Producto_X_Variante(
@@ -165,6 +165,7 @@ create table nibble.Producto_X_Variante(
 )
 
 create table nibble.Venta_X_Producto (
+    id_venta_x_producto decimal(20,0) IDENTITY(1,1) PRIMARY KEY,
     codigo_venta decimal(19,0),
     producto_variante nvarchar(50),
     cantidad decimal(18,0),
@@ -172,7 +173,6 @@ create table nibble.Venta_X_Producto (
     total_por_producto decimal(18,2),
     FOREIGN KEY (codigo_venta) REFERENCES nibble.Venta(codigo_venta),
     FOREIGN KEY (producto_variante) REFERENCES nibble.Producto_X_Variante(cod_producto_X_variante),
-    CONSTRAINT PK_Venta_X_Producto PRIMARY KEY (codigo_venta, producto_variante)
 );
 
 /* COMPRAS */
@@ -207,6 +207,7 @@ create table nibble.Descuento_compra(
 )
 
 create table nibble.Compra_X_Producto(
+    id_compra_x_producto decimal(20,0) IDENTITY(1,1) PRIMARY KEY,
     cantidad decimal(18,0),
     precio_unitario decimal(18,2),
 	compra decimal(19,0) not null,
@@ -214,6 +215,5 @@ create table nibble.Compra_X_Producto(
 	total_por_producto decimal(18,2),
     foreign key(compra) REFERENCES nibble.Compra(numero_compra),
     foreign key(producto) REFERENCES nibble.Producto_X_Variante(cod_producto_X_variante),
-    CONSTRAINT PK_Compra_X_Producto PRIMARY KEY (compra, producto)
 );
 GO

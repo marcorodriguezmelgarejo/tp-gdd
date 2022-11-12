@@ -6,8 +6,26 @@ go
 
 -- CREACIÓN DE TABLAS
 
-
 use GD2C2022
+
+
+
+
+create table nibble.Material(
+    id_material decimal(18,0) IDENTITY(1,1) PRIMARY KEY,
+    descripcion nvarchar(50)
+)
+
+
+create table nibble.Categoria(
+    id_categoria decimal(18,0) IDENTITY(1,1) PRIMARY KEY,
+    descripcion nvarchar(255)
+)
+
+create table nibble.Marca(
+    id_marca decimal(18,0) IDENTITY(1,1) PRIMARY KEY,
+    descripcion nvarchar(255)
+)
 
 create table nibble.Provincia (
     id_provincia decimal(3) IDENTITY(1,1) PRIMARY KEY,
@@ -133,9 +151,12 @@ create table nibble.Producto(
     cod_producto nvarchar(50) PRIMARY KEY,
     descripcion nvarchar(50),
     nombre NVARCHAR(50),
-    material NVARCHAR(50),
-    marca nvarchar(255),
-    categoria nvarchar(255),
+    material decimal(18,0),
+    marca decimal(18,0),
+    categoria decimal(18,0),
+    FOREIGN KEY (material) REFERENCES nibble.Material(id_material),
+    FOREIGN KEY (marca) REFERENCES nibble.Marca(id_marca),
+    FOREIGN KEY (categoria) REFERENCES nibble.Categoria(id_categoria)
 );
 
 create table nibble.Producto_X_Variante(
@@ -152,6 +173,7 @@ create table nibble.Producto_X_Variante(
 )
 
 create table nibble.Venta_X_Producto (
+    id_venta_x_producto decimal(20,0) IDENTITY(1,1) PRIMARY KEY,
     codigo_venta decimal(19,0),
     producto_variante nvarchar(50),
     cantidad decimal(18,0),
@@ -159,7 +181,6 @@ create table nibble.Venta_X_Producto (
     total_por_producto decimal(18,2),
     FOREIGN KEY (codigo_venta) REFERENCES nibble.Venta(codigo_venta),
     FOREIGN KEY (producto_variante) REFERENCES nibble.Producto_X_Variante(cod_producto_X_variante),
-    CONSTRAINT PK_Venta_X_Producto PRIMARY KEY (codigo_venta, producto_variante)
 );
 
 /* COMPRAS */
@@ -194,6 +215,7 @@ create table nibble.Descuento_compra(
 )
 
 create table nibble.Compra_X_Producto(
+    id_compra_x_producto decimal(20,0) IDENTITY(1,1) PRIMARY KEY,
     cantidad decimal(18,0),
     precio_unitario decimal(18,2),
 	compra decimal(19,0) not null,
@@ -201,11 +223,8 @@ create table nibble.Compra_X_Producto(
 	total_por_producto decimal(18,2),
     foreign key(compra) REFERENCES nibble.Compra(numero_compra),
     foreign key(producto) REFERENCES nibble.Producto_X_Variante(cod_producto_X_variante),
-    CONSTRAINT PK_Compra_X_Producto PRIMARY KEY (compra, producto)
 );
 GO
-
-
 
 -- FUNCIONES AUXILIARES
 
@@ -338,11 +357,38 @@ AS
     where VENTA_CANAL is not null
 GO
 
+CREATE PROC nibble.migracion_material
+AS
+    insert into nibble.Material (descripcion)
+    select distinct PRODUCTO_MATERIAL from gd_esquema.Maestra
+    where PRODUCTO_MATERIAL is not null
+GO
+
+CREATE PROC nibble.migracion_categoria
+AS
+    insert into nibble.Categoria (descripcion)
+    select distinct PRODUCTO_CATEGORIA from gd_esquema.Maestra
+    where PRODUCTO_CATEGORIA is not null
+GO
+
+
+CREATE PROC nibble.migracion_marca
+as
+    insert into nibble.Marca (descripcion)
+    select distinct PRODUCTO_MARCA from gd_esquema.Maestra
+    where PRODUCTO_MARCA is not null
+GO
+
 CREATE PROC nibble.migracion_producto
 AS
 
     insert into nibble.Producto(cod_producto, nombre, descripcion, material, marca, categoria)
-    select distinct PRODUCTO_CODIGO, PRODUCTO_NOMBRE, PRODUCTO_DESCRIPCION, PRODUCTO_MATERIAL, PRODUCTO_MARCA, PRODUCTO_CATEGORIA
+    select distinct PRODUCTO_CODIGO, 
+        PRODUCTO_NOMBRE, 
+        PRODUCTO_DESCRIPCION, 
+        (select m.id_material from nibble.Material m where m.descripcion = PRODUCTO_MATERIAL), 
+        (select m.id_marca from nibble.Marca m where m.descripcion = PRODUCTO_MARCA), 
+        (select c.id_categoria from nibble.Categoria c where c.descripcion = PRODUCTO_CATEGORIA)
     from gd_esquema.Maestra
     where PRODUCTO_CODIGO is not null
 
@@ -451,10 +497,9 @@ go
 create proc nibble.migracion_compra_X_producto
 as
     insert into nibble.Compra_X_Producto(producto, compra, precio_unitario, cantidad, total_por_producto)
-    select PRODUCTO_VARIANTE_CODIGO, COMPRA_NUMERO, COMPRA_PRODUCTO_PRECIO, sum(COMPRA_PRODUCTO_CANTIDAD) as cant, COMPRA_PRODUCTO_PRECIO * sum(COMPRA_PRODUCTO_CANTIDAD) as total
+    select PRODUCTO_VARIANTE_CODIGO, COMPRA_NUMERO, COMPRA_PRODUCTO_PRECIO, COMPRA_PRODUCTO_CANTIDAD as cant, COMPRA_PRODUCTO_PRECIO * COMPRA_PRODUCTO_CANTIDAD as total
     from gd_esquema.Maestra
     where COMPRA_NUMERO is not null and PRODUCTO_VARIANTE_CODIGO is not null
-    group by PRODUCTO_VARIANTE_CODIGO, COMPRA_NUMERO, COMPRA_PRODUCTO_PRECIO
 go
 
 
@@ -499,11 +544,10 @@ as
     select PRODUCTO_VARIANTE_CODIGO,
         VENTA_CODIGO,
         VENTA_PRODUCTO_PRECIO,
-        sum(VENTA_PRODUCTO_CANTIDAD) as cant, 
-        VENTA_PRODUCTO_PRECIO * sum(VENTA_PRODUCTO_CANTIDAD) as total
+        VENTA_PRODUCTO_CANTIDAD, 
+        VENTA_PRODUCTO_PRECIO * VENTA_PRODUCTO_CANTIDAD
     from gd_esquema.Maestra
     where VENTA_CODIGO is not null and PRODUCTO_VARIANTE_CODIGO is not null
-    group by PRODUCTO_VARIANTE_CODIGO, VENTA_CODIGO, VENTA_PRODUCTO_PRECIO
 go
 
 

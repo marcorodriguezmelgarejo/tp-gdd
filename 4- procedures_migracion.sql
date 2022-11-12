@@ -15,8 +15,6 @@ as
         where CLIENTE_CODIGO_POSTAL is not null
 go
 
-
-
 CREATE PROC nibble.migracion_variante
 as
     insert into nibble.Variante (descripcion_variante, tipo_variante)
@@ -77,11 +75,39 @@ AS
     where VENTA_CANAL is not null
 GO
 
+CREATE PROC nibble.migracion_material
+AS
+    insert into nibble.Material (descripcion)
+    select distinct PRODUCTO_MATERIAL from gd_esquema.Maestra
+    where PRODUCTO_MATERIAL is not null
+GO
+
+CREATE PROC nibble.migracion_categoria
+AS
+    insert into nibble.Categoria (descripcion)
+    select distinct PRODUCTO_CATEGORIA from gd_esquema.Maestra
+    where PRODUCTO_CATEGORIA is not null
+GO
+
+
+CREATE PROC nibble.migracion_marca
+as
+    insert into nibble.Marca (descripcion)
+    select distinct PRODUCTO_MARCA from gd_esquema.Maestra
+    where PRODUCTO_MARCA is not null
+GO
+
+
 CREATE PROC nibble.migracion_producto
 AS
 
     insert into nibble.Producto(cod_producto, nombre, descripcion, material, marca, categoria)
-    select distinct PRODUCTO_CODIGO, PRODUCTO_NOMBRE, PRODUCTO_DESCRIPCION, PRODUCTO_MATERIAL, PRODUCTO_MARCA, PRODUCTO_CATEGORIA
+    select distinct PRODUCTO_CODIGO, 
+        PRODUCTO_NOMBRE, 
+        PRODUCTO_DESCRIPCION, 
+        (select m.id_material from nibble.Material m where m.descripcion = PRODUCTO_MATERIAL), 
+        (select m.id_marca from nibble.Marca m where m.descripcion = PRODUCTO_MARCA), 
+        (select c.id_categoria from nibble.Categoria c where c.descripcion = PRODUCTO_CATEGORIA)
     from gd_esquema.Maestra
     where PRODUCTO_CODIGO is not null
 
@@ -190,10 +216,9 @@ go
 create proc nibble.migracion_compra_X_producto
 as
     insert into nibble.Compra_X_Producto(producto, compra, precio_unitario, cantidad, total_por_producto)
-    select PRODUCTO_VARIANTE_CODIGO, COMPRA_NUMERO, COMPRA_PRODUCTO_PRECIO, sum(COMPRA_PRODUCTO_CANTIDAD) as cant, COMPRA_PRODUCTO_PRECIO * sum(COMPRA_PRODUCTO_CANTIDAD) as total
+    select PRODUCTO_VARIANTE_CODIGO, COMPRA_NUMERO, COMPRA_PRODUCTO_PRECIO, COMPRA_PRODUCTO_CANTIDAD as cant, COMPRA_PRODUCTO_PRECIO * COMPRA_PRODUCTO_CANTIDAD as total
     from gd_esquema.Maestra
     where COMPRA_NUMERO is not null and PRODUCTO_VARIANTE_CODIGO is not null
-    group by PRODUCTO_VARIANTE_CODIGO, COMPRA_NUMERO, COMPRA_PRODUCTO_PRECIO
 go
 
 
@@ -238,11 +263,10 @@ as
     select PRODUCTO_VARIANTE_CODIGO,
         VENTA_CODIGO,
         VENTA_PRODUCTO_PRECIO,
-        sum(VENTA_PRODUCTO_CANTIDAD) as cant, 
-        VENTA_PRODUCTO_PRECIO * sum(VENTA_PRODUCTO_CANTIDAD) as total
+        VENTA_PRODUCTO_CANTIDAD, 
+        VENTA_PRODUCTO_PRECIO * VENTA_PRODUCTO_CANTIDAD
     from gd_esquema.Maestra
     where VENTA_CODIGO is not null and PRODUCTO_VARIANTE_CODIGO is not null
-    group by PRODUCTO_VARIANTE_CODIGO, VENTA_CODIGO, VENTA_PRODUCTO_PRECIO
 go
 
 
