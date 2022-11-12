@@ -1,5 +1,24 @@
 use GD2C2022
 
+
+
+
+create table nibble.Material(
+    id_material decimal(18,0) IDENTITY(1,1) PRIMARY KEY,
+    descripcion nvarchar(50)
+)
+
+
+create table nibble.Categoria(
+    id_categoria decimal(18,0) IDENTITY(1,1) PRIMARY KEY,
+    descripcion nvarchar(255)
+)
+
+create table nibble.Marca(
+    id_categoria decimal(18,0) IDENTITY(1,1) PRIMARY KEY,
+    descripcion nvarchar(255)
+)
+
 create table nibble.Provincia (
     id_provincia decimal(3) IDENTITY(1,1) PRIMARY KEY,
     nombre nvarchar(255) not null,
@@ -124,9 +143,12 @@ create table nibble.Producto(
     cod_producto nvarchar(50) PRIMARY KEY,
     descripcion nvarchar(50),
     nombre NVARCHAR(50),
-    material NVARCHAR(50),
-    marca nvarchar(255),
-    categoria nvarchar(255),
+    material decimal(18,0),
+    marca decimal(18,0),
+    categoria decimal(18,0),
+    FOREIGN KEY (material) REFERENCES nibble.Material(material),
+    FOREIGN KEY (marca) REFERENCES nibble.Marca(marca),
+    FOREIGN KEY (categoria) REFERENCES nibble.Categoria(categoria)
 );
 
 create table nibble.Producto_X_Variante(
