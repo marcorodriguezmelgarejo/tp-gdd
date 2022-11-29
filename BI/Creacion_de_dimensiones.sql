@@ -12,7 +12,9 @@ create table nibble.Dim_provincia (
 
 create table nibble.Dim_rango_etario (
     id_rango_etario decimal(3) identity(1,1) primary key,
-    rango nvarchar(255)
+    nombre_rango nvarchar(255),
+    limite_inferior_inclusive decimal(3),
+    limite_superior_no_inclusive decimal(3)
 );
 
 create table nibble.Dim_canal (
