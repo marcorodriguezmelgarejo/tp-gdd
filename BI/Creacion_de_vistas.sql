@@ -6,18 +6,16 @@
 
 create view Ganancias_Mensuales_Por_Canal
 as
-    select sum(precio_unitario * cantidad) -
-        cantidad * (select top 1 precio_unitario -- (se fija el costo de comprar los productos que se vendieron en ese mes con ese medio de pago. Usa como precio de referencia el ultimo precio de compra contando desde ese mes.)
-                    from nibble.Hechos_Compras c join nibble.dim_tiempo tc on c.id_tiempo = tc.id_tiempo
-                    where c.cod_producto = v.cod_producto -- busca una compra de ese producto
-                        and tc.mes <= tv.mes and tc.anio <= tv.anio -- que se haya hecho antes de la venta
-                    order by tc.anio desc, tc.mes desc -- agara el ultimo precio
-        )
-        - sum(costo_medio_de_pago) -- <- REVISAR SI ES ASI, LO TIRO EL COPILOT
-    from nibble.Hechos_Ventas v
-        join nibble.dim_canal on nibble.Hechos_Ventas.id_canal = nibble.dim_canal.id_canal
-        join nibble.dim_tiempo tv on nibble.Hechos_Ventas.id_tiempo = nibble.dim_tiempo.id_tiempo
-    group by nibble.dim_canal.nombre_canal, anio, mes
+    select v.id_canal, tiempoVentas.anio, tiempoVentas.mes,  (sum(cantidad * precio) - 
+                                                (select sum(Hechos_Compras.precio * Hechos_Ventas.cantidad ) 
+                                                from Hechos_Compras 
+                                                join Dimension_Tiempo tiempoCompras on Hechos_Compras.id_tiempo = tiempoCompras.id_tiempo and tiempoCompras.anio = tiempoVentas.anio and tiempoCompras.mes = tiempoVentas.mes ) 
+                                                - sum(v.costo_medio_pago + v.costo_canal)) GananciasTotales
+        from Hechos_Ventas v 
+		join Dimension_Canal canal on canal.id_canal = id_canal 
+		join Dimension_Tiempo tiempoVentas on tiempoVentas.id_tiempo = v.id_tiempo
+        group by v.id_canal, tiempoVentas.anio, tiempoVentas.mes
+
 go
 
 
@@ -28,9 +26,9 @@ go
 --Valor expresado en porcentaje.
 --Para simplificar, no es necesario tener en cuenta los descuentos aplicados.
 --12
-create view xxxxx
+create view top5RentabilidadAnual
 as
-
+    select top 5 
 
 
 go
@@ -56,7 +54,6 @@ go
 --(en caso que aplique)
 create view xxxxx
 as
-
 
 
 go
