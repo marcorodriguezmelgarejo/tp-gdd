@@ -3,8 +3,6 @@
 create table nibble.Dim_tiempo (
     id_tiempo decimal(10) identity(1,1) primary key,
     fecha date,
-    anio decimal (4),
-    mes decimal (2)
 );
 
 create table nibble.Dim_provincia (
@@ -50,7 +48,7 @@ create table nibble.Dim_medio_de_pago_venta (
 );
 
 
-create table nibble.Hechos_Ventas_Compras (
+create table nibble.Hechos_Ventas (
     id_provincia decimal(3),
     id_tiempo decimal(10),
     id_canal decimal(18,0),
@@ -59,7 +57,6 @@ create table nibble.Hechos_Ventas_Compras (
     id_rango_etario decimal(3),
     id_medio_de_pago_venta decimal(18),
     id_tipo_descuento decimal(18),
-    cuit_proveedor nvarchar(50),
     cantidad decimal(18,0),
     precio_unitario decimal(18,2),
     costo_medio_de_pago decimal(18,2),
@@ -73,7 +70,20 @@ create table nibble.Hechos_Ventas_Compras (
     constraint FK_Hechos_Ventas_Compras_Dim_rango_etario foreign key (id_rango_etario) references nibble.Dim_rango_etario(id_rango_etario),
     constraint FK_Hechos_Ventas_Compras_Dim_medio_de_pago_venta foreign key (id_medio_de_pago_venta) references nibble.Dim_medio_de_pago_venta(id_medio_de_pago_venta),
     constraint FK_Hechos_Ventas_Compras_Dim_tipo_descuento foreign key (id_tipo_descuento) references nibble.Dim_tipo_descuento(id_tipo_descuento),
-    constraint FK_Hechos_Ventas_Compras_Dim_proveedor foreign key (cuit_proveedor) references nibble.Dim_proveedor(CUIT),
     constraint FK_Hechos_Ventas_Compras_Dim_producto foreign key (cod_producto) references nibble.Dim_producto(id_producto)
+); 
+
+
+create table nibble.Hechos_Compras (
+    id_provincia decimal(3),
+    id_tiempo decimal(10),
+    cod_producto nvarchar(50),
+    cuit_proveedor nvarchar(50),
+    cantidad decimal(18,0),
+    precio_unitario decimal(18,2),
+    constraint FK_Hechos_Ventas_Compras_Dim_provincia foreign key (id_provincia) references nibble.Dim_provincia(id_provincia),
+    constraint FK_Hechos_Ventas_Compras_Dim_tiempo foreign key (id_tiempo) references nibble.Dim_tiempo(id_tiempo),
+    constraint FK_Hechos_Ventas_Compras_Dim_producto foreign key (cod_producto) references nibble.Dim_producto(id_producto),
+    constraint FK_Hechos_Ventas_Compras_Dim_proveedor foreign key (cuit_proveedor) references nibble.Dim_proveedor(CUIT)
 ); 
 
