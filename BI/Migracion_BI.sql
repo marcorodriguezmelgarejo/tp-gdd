@@ -10,5 +10,8 @@ as
     exec nibble.migracion_dim_canal
     exec nibble.migracion_medio_envio
     exec nibble.migracion_dim_proveedor
-    -- tabla de hechos
+    exec nibble.migracion_hechos_compras
+    exec nibble.migracion_hechos_ventas
+    exec nibble.migracion_hechos_ventas_descuentos
+    exec nibble.migracion_hechos_ventas_costo_medio_de_pago
 go
