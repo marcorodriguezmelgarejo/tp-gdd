@@ -48,11 +48,11 @@ GO
 
 create proc nibble.migracion_dim_producto
 as
-    insert into nibble.dim_producto(id_producto, nombre, id_categoria, nombre_categoria)
+    insert into nibble.dim_producto(cod_producto, nombre, id_categoria, nombre_categoria)
     select distinct cod_producto, nombre, id_categoria, Categoria.descripcion from nibble.Producto join nibble.Categoria on Producto.categoria = Categoria.id_categoria
 GO
 
-create proc nibble.migracion_dim_medio_envio
+create proc nibble.migracion_medio_envio
 as
     insert into nibble.dim_medio_de_envio(id_medio_de_envio, nombre)
     select distinct id_medio, nombre from nibble.Medio_envio

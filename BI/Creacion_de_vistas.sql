@@ -3,16 +3,21 @@
 --compras, menos los costos de transacción totales aplicados asociados los
 --medios de pagos utilizados en las mismas
 
+
 create view Ganancias_Mensuales_Por_Canal
 as
-	(select id_canal, sum(cantidad * precio) - (select sum(Hechos_Compras.precio * Hechos_Ventas.cantidad compras ) 
-                                                from Hechos_Compras 
-                                                join Dimension_Tiempo tiempoCompras on Hechos_Compras.id_tiempo = tiempoCompras.id_tiempo and tiempoCompras.anio = tiempoVentas.anio and tiempoCompras.mes = tiempoVentas.mes ) - sum(costos) 
-        from Hechos_Ventas
-		join Dimension_Canal canal on canal.id_canal = id_canal
-        join 
-		join Dimension_Tiempo tiempo on tiempo.id_tiempo = id_tiempo)
-
+    select sum(precio_unitario * cantidad) -
+        cantidad * (select top 1 precio_unitario -- (se fija el costo de comprar los productos que se vendieron en ese mes con ese medio de pago. Usa como precio de referencia el ultimo precio de compra contando desde ese mes.)
+                    from nibble.Hechos_Compras c join nibble.dim_tiempo tc on c.id_tiempo = tc.id_tiempo
+                    where c.cod_producto = v.cod_producto -- busca una compra de ese producto
+                        and tc.mes <= tv.mes and tc.anio <= tv.anio -- que se haya hecho antes de la venta
+                    order by tc.anio desc, tc.mes desc -- agara el ultimo precio
+        )
+        - sum(costo_medio_de_pago) -- <- REVISAR SI ES ASI, LO TIRO EL COPILOT
+    from nibble.Hechos_Ventas v
+        join nibble.dim_canal on nibble.Hechos_Ventas.id_canal = nibble.dim_canal.id_canal
+        join nibble.dim_tiempo tv on nibble.Hechos_Ventas.id_tiempo = nibble.dim_tiempo.id_tiempo
+    group by nibble.dim_canal.nombre_canal, anio, mes
 go
 
 
@@ -99,9 +104,10 @@ go
 --indicador se debe tomar como referencia el máximo precio por año menos
 --el mínimo todo esto divido el mínimo precio del año. Teniendo en cuenta
 --que los precios siempre van en aumento.
+
 create view aumentoDePrecios
 as
-    select c.cuit_proveedor, ((max(c.precio) - min(c.precio))/min(c.precio)) Promedio_De_Precios from Hechos_Compras c join Dimension_Tiempo t on c.id_tiempo = t.id_tiempo GROUP by c.cuit_proveedor, t.anio )
+    select c.cuit_proveedor, ((max(c.precio) - min(c.precio))/min(c.precio)) Promedio_De_Precios from Hechos_Compras c join Dimension_Tiempo t on c.id_tiempo = t.id_tiempo GROUP by c.cuit_proveedor, t.anio
 
 go
 
