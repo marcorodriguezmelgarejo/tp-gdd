@@ -35,13 +35,17 @@ go
 
 
 
-
+use GD2C2022
 -- Las 5 categorías de productos más vendidos por rango etario de clientes
 --por mes.
-create view xxxxx
+create view top5categoriasPorRangoEtario
 as
-
-
+    select top 5 p.id_categoria,
+		p.nombre_categoria 
+    
+    from nibble.Hechos_Ventas v
+    join nibble.Dim_producto p on nibble.Hechos_Ventas.cod_producto = nibble.Dim_producto.id_producto
+	
 
 go
 
