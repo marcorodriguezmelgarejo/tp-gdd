@@ -7,7 +7,7 @@ use GD2C2022
 
 
 go
-alter view Ganancias_Mensuales_Por_Canal
+create view nibble.Ganancias_Mensuales_Por_Canal
 as
     select canal.nombre canal, tiempoVentas.anio, tiempoVentas.mes,  (sum(v.cantidad * v.precio_unitario) - sum(v.cantidad) *
                                                 (select avg(c.precio_unitario ) 
@@ -64,7 +64,7 @@ go
 
 ------------------------------------------------------------------------------------------------------
 --OPCION SENCILLA
-alter view top5RentabilidadAnual
+create view nibble.top5RentabilidadAnual
 as	
 
 
@@ -92,7 +92,7 @@ go
 
 -- Las 5 categorías de productos más vendidos por rango etario de clientes
 --por mes.
-create view top5categoriasPorRangoEtario
+create view nibble.top5categoriasPorRangoEtario
 as
 	select mes, anio, re.nombre_rango, p.nombre_categoria, sum(v.cantidad) cantidad
 	from nibble.Hechos_Ventas v 
@@ -112,7 +112,7 @@ go
 -- Total de Ingresos por cada medio de pago por mes, descontando los costos
 --por medio de pago (en caso que aplique) y descuentos por medio de pago
 --(en caso que aplique)
-create view Ingresos
+create view nibble.Ingresos
 as
 	select mp.nombre Medio_De_Pago, tiempoVentas.anio, tiempoVentas.mes,  (sum(v.cantidad * v.precio_unitario) - sum(isnull(v.costo_medio_de_pago,0) + isnull(v.descuento,0))) GananciasTotales
         from nibble.Hechos_Ventas v 
@@ -129,7 +129,7 @@ go
 -- Importe total en descuentos aplicados según su tipo de descuento, por
 --canal de venta, por mes. Se entiende por tipo de descuento como los
 --correspondientes a envío, medio de pago, cupones, etc)
-create view total_descuentos_por_tipo_canal_y_mes
+create view nibble.total_descuentos_por_tipo_canal_y_mes
 as
 	select anio, mes, nibble.Dim_canal.nombre as canal, 
 		nibble.Dim_tipo_descuento.nombre as tipo_descuento, 
@@ -167,7 +167,7 @@ go
 -- Porcentaje de envíos realizados a cada Provincia por mes. El porcentaje
 --debe representar la cantidad de envíos realizados a cada provincia sobre
 --total de envío mensuales.
-create view EnviosxProvincia
+create view nibble.EnviosxProvincia
 as
 
 	select tiempoVentas.anio, tiempoVentas.mes, p.nombre Provincia, (rtrim(ltrim((count(v.id_provincia)*1.0   -- Multiplico por 1.0 para castearlo a decimal devido a que sino, SQL asumira que es una div de enteros y retornara 0 al ser mas grande el denominador
@@ -190,7 +190,7 @@ go
 --select * from nibble.dim_medio_de_envio
 
 -- Valor promedio de envío por Provincia por Medio De Envío anual.
-create view ValorEnvioXProvincia
+create view nibble.ValorEnvioXProvincia
 as
     SELECT p.nombre, avg(v.costo_envio), t.anio 
 		from nibble.Hechos_Ventas v
@@ -206,7 +206,7 @@ go
 --el mínimo todo esto divido el mínimo precio del año. Teniendo en cuenta
 --que los precios siempre van en aumento.
 
-create view aumentoDePrecios
+create view nibble.aumentoDePrecios
 as
     select c.cuit_proveedor, ((rtrim(ltrim(((max(c.precio_unitario) - min(c.precio_unitario))/min(c.precio_unitario))*100)))+' %') Promedio_De_Precios, t.anio 
 	from nibble.Hechos_Compras c 
@@ -218,7 +218,7 @@ go
 
 
 -- Los 3 productos con mayor cantidad de reposición por mes. 
-create view top_Productos_reposicion
+create view nibble.top_Productos_reposicion
 as
     select top 3 c.cod_producto, sum(c.cantidad) Cantidad_de_Reposicion 
 		from nibble.Hechos_Compras c 
