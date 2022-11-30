@@ -17,5 +17,4 @@ as
     exec nibble.migracion_hechos_ventas_costo_envio
 go
 
-
 exec nibble.migracion_BI
