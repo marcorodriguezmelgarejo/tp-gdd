@@ -20,7 +20,6 @@ as
 		join nibble.Dim_canal canal on canal.id_canal = v.id_canal 
 		join nibble.Dim_Tiempo tiempoVentas on tiempoVentas.id_tiempo = v.id_tiempo
         group by canal.nombre, tiempoVentas.anio, tiempoVentas.mes
-		
 
 go
 -- Test
@@ -95,8 +94,14 @@ go
 --por mes.
 create view top5categoriasPorRangoEtario
 as
-	 
-
+	select mes, anio, re.nombre_rango, p.nombre_categoria, sum(v.cantidad) cantidad
+	from nibble.Hechos_Ventas v 
+		join nibble.Dim_Tiempo t on v.id_tiempo = t.id_tiempo
+		join nibble.Dim_Producto p on v.cod_producto = p.id_producto
+		join nibble.Dim_rango_etario re on v.id_rango_etario = re.id_rango_etario
+	group by mes, anio, re.id_rango_etario, re.nombre_rango, p.nombre_categoria
+	having count(distinct p.id_categoria) <= 5 -- para que no me muestre mas de 5 categorias
+	order by mes, anio, re.id_rango_etario, sum(v.cantidad) desc
 
 go
 
@@ -124,12 +129,38 @@ go
 -- Importe total en descuentos aplicados según su tipo de descuento, por
 --canal de venta, por mes. Se entiende por tipo de descuento como los
 --correspondientes a envío, medio de pago, cupones, etc)
-create view xxxxx
+create view total_descuentos_por_tipo_canal_y_mes
 as
-
-
+	select anio, mes, nibble.Dim_canal.nombre as canal, 
+		nibble.Dim_tipo_descuento.nombre as tipo_descuento, 
+		sum(descuento) as total_descuentos
+	from nibble.Hechos_Ventas
+		join nibble.Dim_Tiempo on Hechos_Ventas.id_tiempo = Dim_Tiempo.id_tiempo
+		join nibble.Dim_tipo_descuento on Hechos_Ventas.id_tipo_descuento = Dim_tipo_descuento.id_tipo_descuento
+		join nibble.Dim_canal on Hechos_Ventas.id_canal = Dim_canal.id_canal
+	group by anio, mes, nibble.Dim_canal.id_canal, nibble.Dim_tipo_descuento.id_tipo_descuento,
+		nibble.Dim_canal.nombre, nibble.Dim_tipo_descuento.nombre
+	order by anio, mes, nibble.Dim_canal.nombre, nibble.Dim_tipo_descuento.nombre
 
 go
+
+-- PRUEBA
+-- -- total descuentos especiales en el mes 2/2022 por ventas por Facebook 
+-- select sum(importe)
+-- from nibble.Venta join nibble.Descuento_venta
+-- 	on Venta.codigo_venta = Descuento_venta.codigo_venta
+-- where YEAR(fecha) = 2022 and MONTH(fecha) = 2 and Venta.canal_de_venta = 3
+
+-- -- total descuentos por cupon en el mes 2/2022 por ventas por Facebook 
+-- select sum(importe)
+-- from nibble.Venta join nibble.Cupon_descuento_X_venta
+-- 	on Venta.codigo_venta = Cupon_descuento_X_venta.codigo_venta
+-- where YEAR(fecha) = 2022 and MONTH(fecha) = 2 and Venta.canal_de_venta = 3
+
+-- -- total descuentos por medio de pago en el mes 2/2022 por ventas por Facebook 
+-- select sum(desc_medio_de_pago * total)
+-- from nibble.Venta
+-- where YEAR(fecha) = 2022 and MONTH(fecha) = 2 and Venta.canal_de_venta = 3
 
 
 
@@ -189,12 +220,12 @@ go
 -- Los 3 productos con mayor cantidad de reposición por mes. 
 create view top_Productos_reposicion
 as
-    (select top 3 c.cod_producto, sum(c.cantidad) Cantidad_de_Reposicion 
+    select top 3 c.cod_producto, sum(c.cantidad) Cantidad_de_Reposicion 
 		from nibble.Hechos_Compras c 
 		join nibble.Dim_Tiempo t on c.id_tiempo = t.id_tiempo 
 		GROUP by c.cod_producto, t.anio, t.mes
 		order by 2 desc
-	)
+	
 
 
 

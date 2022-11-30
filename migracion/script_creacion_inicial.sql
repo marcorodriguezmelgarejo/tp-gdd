@@ -561,6 +561,9 @@ as
     exec nibble.migracion_variante
     exec nibble.migracion_medio_envio
     exec nibble.migracion_cliente
+	exec nibble.migracion_categoria
+	exec nibble.migracion_marca
+	exec nibble.migracion_material
     exec nibble.migracion_canal
     exec nibble.migracion_medio_de_pago_venta
     exec nibble.migracion_producto
