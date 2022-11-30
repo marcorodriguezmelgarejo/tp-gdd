@@ -35,7 +35,6 @@ as
     insert into nibble.dim_tipo_descuento(nombre)
     values  ('cupon'), 
             ('medio_de_pago'), 
-            ('descuento_por_medio'), 
             ('envio_gratis'),
             ('especial');
 go
