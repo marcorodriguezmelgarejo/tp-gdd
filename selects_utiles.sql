@@ -1,8 +1,42 @@
 -- INFO DE LAS VENTAS
 select VENTA_CODIGO, VENTA_FECHA, VENTA_TOTAL, VENTA_MEDIO_PAGO, VENTA_MEDIO_PAGO_COSTO, VENTA_MEDIO_ENVIO, VENTA_ENVIO_PRECIO, VENTA_DESCUENTO_CONCEPTO, VENTA_DESCUENTO_IMPORTE, VENTA_CUPON_VALOR, VENTA_CUPON_TIPO, VENTA_PRODUCTO_CANTIDAD, VENTA_PRODUCTO_PRECIO
-from gd_esquema.Maestra venta where VENTA_CODIGO is not null 
-group by VENTA_CODIGO, VENTA_FECHA, VENTA_TOTAL, VENTA_MEDIO_PAGO, VENTA_MEDIO_PAGO_COSTO, VENTA_MEDIO_ENVIO, VENTA_ENVIO_PRECIO, VENTA_DESCUENTO_CONCEPTO, VENTA_DESCUENTO_IMPORTE, VENTA_CUPON_VALOR, VENTA_CUPON_TIPO, VENTA_PRODUCTO_CANTIDAD, VENTA_PRODUCTO_PRECIO
+from gd_esquema.Maestra venta
 order by VENTA_FECHA desc
+
+select 
+from nibble.Venta
+join nibble.Medio_envio on nibble.Venta.medio_de_envio = nibble.Medio_envio.id_medio
+
+select * from nibble.Medio_envio
+
+select codigo_venta, 
+    medio_de_pago, 
+    desc_medio_de_pago,
+    count(*)
+from nibble.Venta 
+where desc_medio_de_pago is not null
+group by codigo_venta, desc_medio_de_pago, medio_de_pago
+order by count(*) desc
+
+select v.codigo_venta,
+    count(*)
+from nibble.Venta v
+    join nibble.Descuento_Venta on v.codigo_venta = Descuento_Venta.codigo_venta
+group by v.codigo_venta
+order by count(*) desc
+
+select canal_de_venta, 
+    fecha_nac,
+    medio_de_pago,  
+    fecha,
+    id_provincia, 
+    medio_de_envio, 
+    importe
+from nibble.Venta 
+    join nibble.Cliente on Venta.id_cliente = Cliente.id_cliente 
+    join nibble.Codigo_postal on Cliente.codigo_postal = Codigo_postal.Codigo_postal
+    join nibble.medio_de_pago_venta on Venta.medio_de_pago = medio_de_pago_venta.id_medio_pago
+    join nibble.Descuento_Venta on Venta.codigo_venta = Descuento_Venta.codigo_venta
 
 -- INFO DE LOS PRODUCTOS
 select distinct PRODUCTO_CODIGO, PRODUCTO_NOMBRE, PRODUCTO_DESCRIPCION, PRODUCTO_MATERIAL, PRODUCTO_MARCA, PRODUCTO_CATEGORIA

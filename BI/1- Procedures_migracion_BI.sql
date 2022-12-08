@@ -21,11 +21,11 @@ go
 
 create proc nibble.migracion_dim_tiempo
 AS
-    insert into nibble.dim_tiempo(fecha, anio, mes)
-    select distinct fecha, (year(fecha)), (month(fecha)) from nibble.Venta
-    insert into nibble.dim_tiempo(fecha, anio, mes)
-
-    select distinct fecha, YEAR(fecha), month(fecha) 
+    insert into nibble.dim_tiempo(anio, mes)
+    select distinct (year(fecha)), (month(fecha)) from nibble.Venta
+    
+    insert into nibble.dim_tiempo(anio, mes)
+    select distinct YEAR(fecha), month(fecha) 
     from nibble.Compra
     where fecha not in (select fecha from nibble.dim_tiempo) -- para no insertar la misma fecha dos veces
 go
@@ -96,6 +96,29 @@ AS
         join nibble.Producto_X_Variante on Venta_X_Producto.producto_variante = Producto_X_Variante.cod_producto_x_variante
         join nibble.Producto p on Producto_X_Variante.cod_producto = p.cod_producto        
 go 
+
+create proc nibble.migracion_hechos_items_ventas
+AS
+    insert into nibble.Hechos_Ventas(id_provincia, id_tiempo, id_canal, cod_producto, id_medio_de_envio, id_rango_etario, id_medio_de_pago_venta, cantidad, precio_unitario)
+    select id_provincia, 
+        id_tiempo,
+        canal_de_venta,
+        p.cod_producto,
+        medio_de_envio,
+        (select top 1 id_rango_etario from nibble.dim_rango_etario where DATEDIFF(year, fecha_nac, GETDATE()) >= limite_inferior_inclusive and DATEDIFF(year, fecha_nac, GETDATE()) < limite_superior_no_inclusive),
+        medio_de_pago,
+        cantidad,
+        precio_unitario
+        from nibble.Venta
+        join nibble.Cliente on Venta.id_cliente = Cliente.id_cliente
+        join nibble.Codigo_postal on Cliente.codigo_postal = Codigo_postal.Codigo_postal
+        join nibble.Dim_tiempo on Venta.fecha = dim_tiempo.fecha
+        join nibble.Venta_X_Producto on Venta.codigo_venta = Venta_X_Producto.codigo_venta
+        join nibble.Producto_X_Variante on Venta_X_Producto.producto_variante = Producto_X_Variante.cod_producto_x_variante
+        join nibble.Producto p on Producto_X_Variante.cod_producto = p.cod_producto        
+go 
+
+
 
 create proc nibble.migracion_hechos_ventas_descuentos
 AS
