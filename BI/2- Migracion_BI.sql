@@ -11,10 +11,7 @@ as
     exec nibble.migracion_dim_proveedor
     exec nibble.migracion_hechos_compras
     exec nibble.migracion_hechos_ventas
-    exec nibble.migracion_hechos_ventas_descuentos
-    exec nibble.migracion_hechos_ventas_costo_medio_de_pago
-    exec nibble.migracion_hechos_ventas_costo_canal
-    exec nibble.migracion_hechos_ventas_costo_envio
+    exec nibble.migracion_hechos_items_ventas
 go
 
 exec nibble.migracion_BI

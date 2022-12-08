@@ -25,8 +25,5 @@ drop proc nibble.migracion_dim_medio_envio
 drop proc nibble.migracion_dim_proveedor
 drop proc nibble.migracion_hechos_compras
 drop proc nibble.migracion_hechos_ventas
-drop proc nibble.migracion_hechos_ventas_descuentos
-drop proc nibble.migracion_hechos_ventas_costo_medio_de_pago
-drop proc nibble.migracion_hechos_ventas_costo_canal
-drop proc nibble.migracion_hechos_ventas_costo_envio
+drop proc nibble.migracion_hechos_items_ventas
 go
