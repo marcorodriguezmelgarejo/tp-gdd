@@ -65,8 +65,8 @@ GO
 
 create proc nibble.migracion_hechos_compras
 as
-    insert into nibble.Hechos_Compras(cod_producto, cuit_proveedor, id_provincia, id_tiempo, cantidad_vendida, monto_vendido)
-    select p.cod_producto, cuit, id_provincia, id_tiempo, sum(cantidad), sum(precio_unitario * cantidad)
+    insert into nibble.Hechos_Compras(cod_producto, cuit_proveedor, id_provincia, id_tiempo, cantidad_comprada, monto_comprado, precio_unitario_max, precio_unitario_min)
+    select p.cod_producto, cuit, id_provincia, id_tiempo, sum(cantidad), sum(precio_unitario * cantidad), max(precio_unitario), min(precio_unitario)
     from nibble.Compra 
     join nibble.Compra_X_Producto on Compra.numero_compra = Compra_X_Producto.compra
 	join nibble.Producto_X_Variante on Compra_X_Producto.producto = Producto_X_Variante.cod_producto_x_variante
