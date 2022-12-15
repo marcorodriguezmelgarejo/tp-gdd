@@ -3,7 +3,6 @@
 --compras, menos los costos de transacción totales aplicados asociados los
 --medios de pagos utilizados en las mismas
 
--- LISTO
 go
 create view nibble.Ganancias_Mensuales_Por_Canal
 as
@@ -27,11 +26,9 @@ as
 		join nibble.Dim_Tiempo tiempoVentas on tiempoVentas.id_tiempo = iv.id_tiempo
         group by canal.nombre, tiempoVentas.anio, tiempoVentas.mes, iv.cod_producto,  iv.id_canal, iv.id_tiempo
 go
--- Test
---select * from Ganancias_Mensuales_Por_Canal order by anio, mes, canal asc
 
 
--- Los 5 productos con mayor rentabilidad anual, con sus respectivos %
+-- Los 5 productos con mayor rentabilidad anual, con sus respectivos %
 --Se entiende por rentabilidad a los ingresos generados por el producto
 --(ventas) durante el periodo menos la inversión realizada en el producto
 --(compras) durante el periodo, todo esto sobre dichos ingresos.
@@ -62,16 +59,14 @@ go
 --												group by v.cod_producto,p.nombre, tiempoVentas.anio
 --												) Ranking_Rentabilidad
 --		where puesto <=5
---		order by anio, puesto
+--		
 --go
 
 
 
 ------------------------------------------------------------------------------------------------------
 
--- LISTO
-
---OPCION SENCILLA
+-- MEJOR OPCION 
 create view nibble.top5RentabilidadAnual
 as	
 
@@ -97,10 +92,9 @@ as
 
 go
 
--- select * from top5RentabilidadAnual 
 
--- LISTO
--- Las 5 categorías de productos más vendidos por rango etario de clientes
+
+-- Las 5 categorías de productos más vendidos por rango etario de clientes
 --por mes.
 create view nibble.top5categoriasPorRangoEtario
 as
@@ -124,12 +118,11 @@ go
 
 
 
--- Total de Ingresos por cada medio de pago por mes, descontando los costos
+-- Total de Ingresos por cada medio de pago por mes, descontando los costos
 --por medio de pago (en caso que aplique) y descuentos por medio de pago
 --(en caso que aplique)
 
 
--- LISTO
 create view nibble.Ingresos
 as
 	select mp.nombre Medio_De_Pago, tiempoVentas.anio, tiempoVentas.mes, (select sum(monto_vendido) from nibble.Hechos_Items_Ventas
@@ -145,11 +138,11 @@ go
 --select * from Ingresos order by anio, mes, GananciasTotales desc
 
 
--- Importe total en descuentos aplicados según su tipo de descuento, por
+-- Importe total en descuentos aplicados según su tipo de descuento, por
 --canal de venta, por mes. Se entiende por tipo de descuento como los
 --correspondientes a envío, medio de pago, cupones, etc)
 
--- LISTO
+
 create view nibble.total_descuentos_por_tipo_canal_y_mes
 as
 	select anio, mes, nibble.Dim_canal.nombre as canal, 
@@ -183,15 +176,13 @@ go
 -- where YEAR(fecha) = 2022 and MONTH(fecha) = 2 and Venta.canal_de_venta = 3
 
 
--- LISTO
-
 -- Porcentaje de envíos realizados a cada Provincia por mes. El porcentaje
 --debe representar la cantidad de envíos realizados a cada provincia sobre
 --total de envío mensuales.
 create view nibble.EnviosxProvincia
 as
 
-	select tiempoVentas.anio, tiempoVentas.mes, p.nombre Provincia, concat((count(v.id_provincia)*1.0   -- Multiplico por 1.0 para castearlo a decimal devido a que sino, SQL asumira que es una div de enteros y retornara 0 al ser mas grande el denominador
+	select tiempoVentas.anio, tiempoVentas.mes, p.nombre Provincia, concat((count(v.id_provincia)*1.0   -- Multiplico por 1.0 para castearlo a decimal debido a que sino, SQL asumira que es una div de enteros y retornara 0 al ser mas grande el denominador
 	/ (select count(v2.id_provincia) 
 			from nibble.Hechos_Ventas v2
 			join nibble.Dim_Tiempo t on t.id_tiempo = v2.id_tiempo and t.anio = tiempoVentas.anio and t.mes = tiempoVentas.mes
@@ -208,9 +199,8 @@ as
 
 go
 
---select * from nibble.dim_medio_de_envio
 
--- Valor promedio de envío por Provincia por Medio De Envío anual.
+-- Valor promedio de envío por Provincia por Medio De Envío anual.
 create view nibble.ValorEnvioXProvincia
 as
     SELECT p.nombre, avg(v.costo_envio) as costo_envio, t.anio 
@@ -227,15 +217,37 @@ go
 --el mínimo todo esto divido el mínimo precio del año. Teniendo en cuenta
 --que los precios siempre van en aumento.
 
--- LISTO, PROBAR
 create view nibble.aumentoDePrecios
 as
-    select c.cuit_proveedor, concat((c.precio_unitario_max - c.precio_unitario_min) / c.precio_unitario_min * 100,'%') Promedio_De_Precios, t.anio 
+    select c.cuit_proveedor, concat(100*( -- para cada proveedor y anio...
+		select avg( -- para todos los produtos distintos que se compraron a ese proveedor en ese anio...
+		(( 
+			select top 1 precio_unitario_max -- precio maximo de ese producto en el ultimo mes en el que se compro ese anio
+			from nibble.Hechos_Compras c3 join nibble.Dim_Tiempo t3 on c3.id_tiempo = t3.id_tiempo
+			where c3.cuit_proveedor = c.cuit_proveedor and t3.anio = t.anio and c3.cod_producto = c2.cod_producto
+			order by t3.mes desc
+		) - 
+		(
+			select top 1 precio_unitario_min -- precio minimo de ese producto en el primer mes en el que se compro ese anio
+			from nibble.Hechos_Compras c3 join nibble.Dim_Tiempo t3 on c3.id_tiempo = t3.id_tiempo
+			where c3.cuit_proveedor = c.cuit_proveedor and t3.anio = t.anio and c3.cod_producto = c2.cod_producto
+			order by t3.mes asc
+		))
+		/ 
+		(
+			select top 1 precio_unitario_min -- precio minimo de ese producto en el primer mes en el que se compro ese anio
+			from nibble.Hechos_Compras c3 join nibble.Dim_Tiempo t3 on c3.id_tiempo = t3.id_tiempo
+			where c3.cuit_proveedor = c.cuit_proveedor and t3.anio = t.anio and c3.cod_producto = c2.cod_producto
+			order by t3.mes asc
+		))
+		from nibble.Hechos_Compras c2 join nibble.Dim_Tiempo t2 on c2.id_tiempo = t2.id_tiempo
+		where c2.cuit_proveedor = c.cuit_proveedor and t2.anio = t.anio
+		group by c2.cod_producto)
+		,'%') Aumento_Promedio_De_Precios, t.anio 
 	from nibble.Hechos_Compras c 
 	join nibble.Dim_Tiempo t on c.id_tiempo = t.id_tiempo 
 	GROUP by c.cuit_proveedor, t.anio
 go
-
 
 -- Los 3 productos con mayor cantidad de reposición por mes. 
 create view nibble.top_Productos_reposicion
@@ -245,10 +257,20 @@ as
 	join nibble.Dim_Tiempo t on c.id_tiempo = t.id_tiempo 
 	GROUP by c.cod_producto, t.anio, t.mes, t.id_tiempo
 	having c.cod_producto in (
-		select top 2 c2.cod_producto
+		select top 3 c2.cod_producto
 		from nibble.Hechos_Compras c2
 		where c2.id_tiempo = t.id_tiempo 
 		GROUP by c2.cod_producto
 		order by sum(c2.cantidad_comprada) desc
 	)
 go
+
+-- opción mas performante pero con subselect en from 
+-- create view nibble.top_Productos_reposicion
+-- as
+--    select * from (select (RANK() OVER (PARTITION BY t.anio, t.mes ORDER BY sum(c.cantidad_comprada) desc)) indice_ranking,c.cod_producto, anio, mes, sum(c.cantidad_comprada) Cantidad_de_Reposicion 
+-- 		from nibble.Hechos_Compras c 
+-- 	join nibble.Dim_Tiempo t on c.id_tiempo = t.id_tiempo 
+-- 	GROUP by c.cod_producto, t.anio, t.mes, t.id_tiempo) as xd
+-- 	where indice_ranking <= 3
+-- go
